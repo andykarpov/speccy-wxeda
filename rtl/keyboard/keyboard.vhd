@@ -111,7 +111,7 @@ port map (
 			keys(10) <= (others => '0');
 			keys(11) <= (others => '0');
 			
-		elsif CLK'event and CLK = '1' and scancode_ready = '1' then
+		elsif CLK'event and CLK = '1' then
 			case keyb_data is
 				--when X"FF" =>
 				--			  keys(0) <= (others => '1');
@@ -242,7 +242,7 @@ port map (
 				-- Hardware keys
 				when X"7e" => keys(11)(2) <= '1'; -- Scroll Lock (Reset)
 				--when X"??" => keys(11)(3) <= '1'; -- Pause
-				--when X"65" => keys(11)(4) <= '1'; -- WinMenu
+				--when X"??" => keys(11)(4) <= '1'; -- WinMenu
 								
 				when others => null;
 			end case;
