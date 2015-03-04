@@ -155,7 +155,7 @@ BEGIN
 
 	altpll_component : altpll
 	GENERIC MAP (
-		bandwidth_type => "AUTO",
+		bandwidth_type => "LOW",
 		clk0_divide_by => 12,
 		clk0_duty_cycle => 50,
 		clk0_multiply_by => 7,
@@ -238,8 +238,8 @@ END SYN;
 -- Retrieval info: PRIVATE: BANDWIDTH_FEATURE_ENABLED STRING "1"
 -- Retrieval info: PRIVATE: BANDWIDTH_FREQ_UNIT STRING "MHz"
 -- Retrieval info: PRIVATE: BANDWIDTH_PRESET STRING "Low"
--- Retrieval info: PRIVATE: BANDWIDTH_USE_AUTO STRING "1"
--- Retrieval info: PRIVATE: BANDWIDTH_USE_PRESET STRING "0"
+-- Retrieval info: PRIVATE: BANDWIDTH_USE_AUTO STRING "0"
+-- Retrieval info: PRIVATE: BANDWIDTH_USE_PRESET STRING "1"
 -- Retrieval info: PRIVATE: CLKBAD_SWITCHOVER_CHECK STRING "0"
 -- Retrieval info: PRIVATE: CLKLOSS_CHECK STRING "0"
 -- Retrieval info: PRIVATE: CLKSWITCH_CHECK STRING "0"
@@ -248,7 +248,7 @@ END SYN;
 -- Retrieval info: PRIVATE: CREATE_INCLK1_CHECK STRING "0"
 -- Retrieval info: PRIVATE: CUR_DEDICATED_CLK STRING "c0"
 -- Retrieval info: PRIVATE: CUR_FBIN_CLK STRING "c0"
--- Retrieval info: PRIVATE: DEVICE_SPEED_GRADE STRING "8"
+-- Retrieval info: PRIVATE: DEVICE_SPEED_GRADE STRING "6"
 -- Retrieval info: PRIVATE: DIV_FACTOR0 NUMERIC "1"
 -- Retrieval info: PRIVATE: DIV_FACTOR1 NUMERIC "1"
 -- Retrieval info: PRIVATE: DIV_FACTOR2 NUMERIC "1"
@@ -342,7 +342,7 @@ END SYN;
 -- Retrieval info: PRIVATE: USE_MIL_SPEED_GRADE NUMERIC "0"
 -- Retrieval info: PRIVATE: ZERO_DELAY_RADIO STRING "0"
 -- Retrieval info: LIBRARY: altera_mf altera_mf.altera_mf_components.all
--- Retrieval info: CONSTANT: BANDWIDTH_TYPE STRING "AUTO"
+-- Retrieval info: CONSTANT: BANDWIDTH_TYPE STRING "LOW"
 -- Retrieval info: CONSTANT: CLK0_DIVIDE_BY NUMERIC "12"
 -- Retrieval info: CONSTANT: CLK0_DUTY_CYCLE NUMERIC "50"
 -- Retrieval info: CONSTANT: CLK0_MULTIPLY_BY NUMERIC "7"

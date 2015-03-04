@@ -309,7 +309,8 @@ signal dos_act		: std_logic := '1';
 signal cpuclk		: std_logic;
 signal selector		: std_logic_vector(4 downto 0);
 signal key_f		: std_logic_vector(12 downto 1);
-signal key		: std_logic_vector(12 downto 1) := "000100000100";
+--signal key		: std_logic_vector(12 downto 1) := "000100000100"; -- F9=14.0, F3=7.0
+signal key		: std_logic_vector(12 downto 1) := "000000000000"; -- F9=7.0, F3=3.5
 -- CNTR
 signal cntr_rgb		: std_logic_vector(5 downto 0);
 signal cntr_hs		: std_logic;
@@ -631,17 +632,20 @@ sdr_rfsh <= not cpu0_rfsh_n;
 -------------------------------------------------------------------------------
 -- Делитель
 cpuclk <= clk_bus and cpu0_ena;
-cpu0_mult <= key_f(9) & key_f(3);	-- 00 = 3.5MHz; 01 = 7.0MHz; 10 = 7MHz; 11 = 14MHz
-process (cpu0_mult, ena_3_5mhz, ena_7mhz, ena_14mhz)
-begin
-	case cpu0_mult is
-		when "00" => cpu0_ena <= ena_3_5mhz;
-		when "01" => cpu0_ena <= ena_7mhz;
-		when "10" => cpu0_ena <= ena_7mhz;
-		when "11" => cpu0_ena <= ena_14mhz;
-		when others => null;
-	end case;
-end process;
+--cpu0_mult <= key_f(9) & key_f(3);	-- 00 = 3.5MHz; 01 = 7.0MHz; 10 = 7MHz; 11 = 14MHz
+--process (cpu0_mult, ena_3_5mhz, ena_7mhz, ena_14mhz)
+--begin
+--	case cpu0_mult is
+--		when "00" => cpu0_ena <= ena_3_5mhz;
+--		when "01" => cpu0_ena <= ena_7mhz;
+--		when "10" => cpu0_ena <= ena_7mhz;
+--		when "11" => cpu0_ena <= ena_14mhz;
+--		when others => null;
+--	end case;
+--end process;
+
+cpu0_mult <= "00"; -- default to 3.5MHz
+cpu0_ena <= ena_3_5mhz;
 
 -------------------------------------------------------------------------------
 -- SD					
