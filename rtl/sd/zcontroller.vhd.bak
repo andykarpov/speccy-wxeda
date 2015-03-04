@@ -37,6 +37,7 @@ entity zcontroller is
 		DO		: out std_logic_vector(7 downto 0);
 		RD		: in std_logic;
 		WR		: in std_logic;
+		SDDET	: in std_logic;
 		SDPROT	: in std_logic;
 		CS_n	: out std_logic;
 		SCLK	: out std_logic;

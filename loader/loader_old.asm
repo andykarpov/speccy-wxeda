@@ -2,18 +2,18 @@
 ; -----------------------------------------------------------------[09.08.2014]
 ; ReVerSE-U16 Loader Version 0.9.2 By MVV
 ; -----------------------------------------------------------------------------
-; V0.1	 05.11.2011	РїРµСЂРІР°СЏ РІРµСЂСЃРёСЏ
-; V0.5	 09.11.2011	РґРѕР±Р°РІРёР» SPI Р·Р°РіСЂСѓР·С‡РёРє Рё GS, VS1053
-; V0.6	 14.01.2012	РґРѕР±Р°РІРёР» СЂР°СЃС€РёСЂРµРЅРёРµ РїР°РјСЏС‚Рё KAY
-; V0.7	 19.09.2012	РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ СЂРµР¶РёРј РїР°РјСЏС‚СЊ 4MB Profi, 96K ROM РіСЂСѓР·РёС‚СЃСЏ РёР· M25P40, wav 48kHz, FAT16 loader РѕС‚РєР»СЋС‡РµРЅ
-; V0.8	 19.03.2014	СЂР°Р·РјРµСЂ Р·Р°РіСЂСѓР·С‡РёРєР° 1Рљ
-; V0.9	 24.07.2014	РѕРґР°РїС‚РёСЂРѕРІР°РЅ РґР»СЏ U16 EP3C10
-; V0.9.1 25.07.2014	РѕРґР°РїС‚РёСЂРѕРІР°РЅ РґР»СЏ U16 EP4CE22/EP3C25
-; V0.9.2 09.08.2014	РїРѕРґРґРµСЂР¶РєР° ENC424J600
+; V0.1	 05.11.2011	первая версия
+; V0.5	 09.11.2011	добавил SPI загрузчик и GS, VS1053
+; V0.6	 14.01.2012	добавил расширение памяти KAY
+; V0.7	 19.09.2012	по умолчанию режим память 4MB Profi, 96K ROM грузится из M25P40, wav 48kHz, FAT16 loader отключен
+; V0.8	 19.03.2014	размер загрузчика 1К
+; V0.9	 24.07.2014	одаптирован для U16 EP3C10
+; V0.9.1 25.07.2014	одаптирован для U16 EP4CE22/EP3C25
+; V0.9.2 09.08.2014	поддержка ENC424J600
 
 system_port	equ #0001	; bit2 = (0:Loader ON, 1:Loader OFF); bit1 = (NC); bit0 = (0:M25P16, 1:ENC424J600)
-mask_port	equ #0000	; РњР°СЃРєР° РїРѕСЂС‚Р° EXT_MEM_PORT РїРѕ AND
-ext_mem_port	equ #dffd	; РџРѕСЂС‚ РїР°РјСЏС‚Рё
+mask_port	equ #0000	; Маска порта EXT_MEM_PORT по AND
+ext_mem_port	equ #dffd	; Порт памяти
 pr_param	equ #7f00
 
 
@@ -25,7 +25,7 @@ startprog:
 
 	xor a
 	out (#fe),a
-	call cls	; РѕС‡РёСЃС‚РєР° СЌРєСЂР°РЅР°
+	call cls	; очистка экрана
 	ld hl,str1
 	call print_str
 
@@ -66,13 +66,13 @@ spi_loader1
 	jr nz,spi_loader1
 	
 	ld bc,mask_port
-	ld a,%11111111	; РјР°СЃРєР° РїРѕСЂС‚Р° РїРѕ and
+	ld a,%11111111	; маска порта по and
 	out (c),a
 	ld a,%10000100
 	ld bc,ext_mem_port
 	out (c),a
 
-	xor a		; РѕС‚РєСЂС‹РІР°РµРј СЃС‚СЂР°РЅРёС†Сѓ РѕР·Сѓ
+	xor a		; открываем страницу озу
 spi_loader3
 	ld bc,#7ffd
 	out (c),a
@@ -97,136 +97,136 @@ spi_loader2
 	out (c),a
 	ld bc,ext_mem_port
 	out (c),a
-	ld a,%00011111	; РјР°СЃРєР° РїРѕСЂС‚Р° (СЂР°Р·СЂРµС€Р°РµРј 4mb)
+	ld a,%00011111	; маска порта (разрешаем 4mb)
 	ld bc,mask_port
 	out (c),a
 
 	xor a
 	out (#fe),a
 
-	ld hl,str3	;Р·Р°РІРµСЂС€РµРЅРѕ
+	ld hl,str3	;завершено
 	call print_str
 
-;	ld hl,str4	;РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ MC14818A
-;	call print_str
+	ld hl,str4	;инициализация MC14818A
+	call print_str
 
 ; -----------------------------------------------------------------------------
 ; I2C DS1338 to MC14818 loader
 ; -----------------------------------------------------------------------------
-;rtc_init
-;	ld bc,#3f00
-;	ld hl,#8000
-;	call i2c_get
+rtc_init
+	ld bc,#3f00
+	ld hl,#8000
+	call i2c_get
 
-;	ld a,#80
-;	ld bc,#eff7
-;	out(c),a
+	ld a,#80
+	ld bc,#eff7
+	out(c),a
 
 ; register b
-;	ld a,#0b
-;	ld b,#df
-;	out (c),a
-;	ld a,#82
-;	ld b,#bf
-;	out (c),a
+	ld a,#0b
+	ld b,#df
+	out (c),a
+	ld a,#82
+	ld b,#bf
+	out (c),a
 ; seconds
-;	ld a,#00
-;	ld b,#df
-;	out (c),a
-;	ld a,(#8000)	;00h seconds
-;	and %01111111	;СѓРґР°Р»СЏРµРј ch Р±РёС‚
-;	ld b,#bf
-;	out (c),a
+	ld a,#00
+	ld b,#df
+	out (c),a
+	ld a,(#8000)	;00h seconds
+	and %01111111	;удаляем ch бит
+	ld b,#bf
+	out (c),a
 ; minutes		
-;	ld a,#02
-;	ld b,#df
-;	out (c),a
-;	ld a,(#8001)	;01h minutes
-;	ld b,#bf
-;	out (c),a
+	ld a,#02
+	ld b,#df
+	out (c),a
+	ld a,(#8001)	;01h minutes
+	ld b,#bf
+	out (c),a
 ; hours		
-;	ld a,#04
-;	ld b,#df
-;	out (c),a
-;	ld a,(#8002)	;02h hours
-;	and #1f
-;	ld b,#bf
-;	out (c),a
+	ld a,#04
+	ld b,#df
+	out (c),a
+	ld a,(#8002)	;02h hours
+	and #1f
+	ld b,#bf
+	out (c),a
 ; day of the week		
-;	ld a,#06
-;	ld b,#df
-;	out (c),a
-;	ld a,(#8003)	;03h day
-;	ld b,#bf
-;	out (c),a
+	ld a,#06
+	ld b,#df
+	out (c),a
+	ld a,(#8003)	;03h day
+	ld b,#bf
+	out (c),a
 ; date of the month
-;	ld a,#07
-;	ld b,#df
-;	out (c),a
-;	ld a,(#8004)	;04h date
-;	ld b,#bf
-;	out (c),a
+	ld a,#07
+	ld b,#df
+	out (c),a
+	ld a,(#8004)	;04h date
+	ld b,#bf
+	out (c),a
 ; month
-;	ld a,#08
-;	ld b,#df
-;	out (c),a
-;	ld a,(#8005)	;05h month
-;	ld b,#bf
-;	out (c),a
+	ld a,#08
+	ld b,#df
+	out (c),a
+	ld a,(#8005)	;05h month
+	ld b,#bf
+	out (c),a
 ; year
-;	ld a,#09
-;	ld b,#df
-;	out (c),a
-;	ld a,(#8005)
+	ld a,#09
+	ld b,#df
+	out (c),a
+	ld a,(#8005)
 	; and #c0
 	; rlca
 	; rlca
-	; ld hl,#8010	; СЏС‡РµР№РєР° РґР»СЏ С…СЂР°РЅРµРЅРёСЏ РіРѕРґР° (8 Р±РёС‚)
-	; add a,(hl)	; РіРѕРґ РёР· pcf + РїРѕРїСЂР°РІРєР° РёР· СЏС‡РµР№РєРё
-;	ld b,#bf
-;	out (c),a
+	; ld hl,#8010	; ячейка для хранения года (8 бит)
+	; add a,(hl)	; год из pcf + поправка из ячейки
+	ld b,#bf
+	out (c),a
 ; register b
-;	ld a,#0b
-;	ld b,#df
-;	out (c),a
-;	ld a,#02
-;	ld b,#bf
-;	out (c),a
+	ld a,#0b
+	ld b,#df
+	out (c),a
+	ld a,#02
+	ld b,#bf
+	out (c),a
 
-;	ld a,#00
-;	ld bc,#eff7
-;	out(c),a
+	ld a,#00
+	ld bc,#eff7
+	out(c),a
 
-;	ld hl,str3	;Р·Р°РІРµСЂС€РµРЅРѕ
-;	call print_str
+	ld hl,str3	;завершено
+	call print_str
 
-	;РІС‹РІРѕРґ РІСЂРµРјРµРЅРё
-;	ld a,(#8002)	;С‡Р°СЃ
-;	and #1f
-;	call print_hex
-;	ld a,":"
-;	call print_char
-;	ld a,(#8001)	;РјРёРЅСѓС‚С‹
-;	call print_hex
-;	ld a,":"
-;	call print_char
-;	ld a,(#8000)	;СЃРµРєСѓРЅРґС‹
-;	and #7F
-;	call print_hex
+	;вывод времени
+	ld a,(#8002)	;час
+	and #1f
+	call print_hex
+	ld a,":"
+	call print_char
+	ld a,(#8001)	;минуты
+	call print_hex
+	ld a,":"
+	call print_char
+	ld a,(#8000)	;секунды
+	and #7F
+	call print_hex
 
-	;РІС‹РІРѕРґ РґР°С‚С‹
-;	ld a," "
-;	call print_char
-;	ld a,(#8004)	;С‡РёСЃР»Рѕ
-;	call print_hex
-;	ld a,"."
-;	call print_char
-;	ld a,(#8005)	;РјРµСЃРµС†
-;	call print_hex
-;	ld a,"."
-;	call print_char
-;	ld a,(#8006)	;РіРѕРґ
-;	call print_hex
+	;вывод даты
+	ld a," "
+	call print_char
+	ld a,(#8004)	;число
+	call print_hex
+	ld a,"."
+	call print_char
+	ld a,(#8005)	;месец
+	call print_hex
+	ld a,"."
+	call print_char
+	ld a,(#8006)	;год
+	call print_hex
 
 	ld hl,str0	;any key
 	call print_str
@@ -238,7 +238,7 @@ spi_loader2
 	out (c),a
 
 	ld sp,#ffff
-	jp #0000	; Р·Р°РїСѓСЃРє СЃРёСЃС‚РµРјС‹
+	jp #0000	; запуск системы
 
 
 
@@ -270,49 +270,49 @@ spi_loader2
 ;	bit 1 	= 1:ERROR 	(I2C transaction error)
 ;	bit 0 	= 1:BUSY 	(I2C bus busy)
 
-; HL= Р°РґСЂРµСЃ Р±СѓС„РµСЂР°
-; B = РґР»РёРЅР° (0=256 Р±Р°Р№С‚)
-; C = Р°РґСЂРµСЃ
-;i2c_get	
-;	ld a,%11111101	; start
-;	out (#9c),a
-;	ld a,%11010000	; slave address w
-;	out (#8c),a
-;	call i2c_ack
-;	ld a,%11111110	; nstart
-;	out (#9c),a
-;	ld a,c		; word address
-;	out (#8c),a
-;	call i2c_ack
-;	ld a,%11111101	; start
-;	out (#9c),a
-;	ld a,%11010001	; slave address r
-;	out (#8c),a
-;	call i2c_ack
-;	ld a,%11111100	; idle
-;	out (#9c),a
-;i2c_get2
-;	out (#8c),a
-;	call i2c_ack
-;	in a,(#8c)
-;	ld (hl),a
-;	inc hl
-;	ld a,b
-;	cp 2
-;	jr nz,i2c_get1
-;	ld a,%11111111	; stop
-;	out (#9c),a
-;i2c_get1
-;	djnz i2c_get2
-;	ret
+; HL= адрес буфера
+; B = длина (0=256 байт)
+; C = адрес
+i2c_get	
+	ld a,%11111101	; start
+	out (#9c),a
+	ld a,%11010000	; slave address w
+	out (#8c),a
+	call i2c_ack
+	ld a,%11111110	; nstart
+	out (#9c),a
+	ld a,c		; word address
+	out (#8c),a
+	call i2c_ack
+	ld a,%11111101	; start
+	out (#9c),a
+	ld a,%11010001	; slave address r
+	out (#8c),a
+	call i2c_ack
+	ld a,%11111100	; idle
+	out (#9c),a
+i2c_get2
+	out (#8c),a
+	call i2c_ack
+	in a,(#8c)
+	ld (hl),a
+	inc hl
+	ld a,b
+	cp 2
+	jr nz,i2c_get1
+	ld a,%11111111	; stop
+	out (#9c),a
+i2c_get1
+	djnz i2c_get2
+	ret
 
 ; wait ack
-;i2c_ack
-;	in a,(#9c)
-;	rrca		; ack?
-;	jr c,i2c_ack
-;	rrca		; error?
-;	ret
+i2c_ack
+	in a,(#9c)
+	rrca		; ack?
+	jr c,i2c_ack
+	rrca		; error?
+	ret
 
 ; -----------------------------------------------------------------------------	
 ; SPI -- V0.2.1	(20130901)
@@ -420,10 +420,10 @@ print_char
 	cp 13
 	jr z,pchar2
 	sub 32
-	ld c,a			; РІСЂРµРјРµРЅРЅРѕ СЃРѕС…СЂР°РЅРёС‚СЊ РІ СЃ
+	ld c,a			; временно сохранить в с
 	ld hl,(pr_param)	; hl=yx
-	;РєРѕРѕСЂРґРёРЅР°С‚С‹ -> scr adr
-	;in: H - Y РєРѕРѕСЂРґРёРЅР°С‚Р°, L - X РєРѕРѕСЂРґРёРЅР°С‚Р°
+	;координаты -> scr adr
+	;in: H - Y координата, L - X координата
 	;out:hl - screen adress
 	ld a,h
 	and 7
@@ -445,10 +445,10 @@ print_char
 	and 3
 	or #58
 	ld h,a
-	ld a,(pr_param+2)	; С†РІРµС‚
-	ld (hl),a		; РїРµС‡Р°С‚СЊ Р°С‚СЂРёР±СѓС‚Р° СЃРёРјРІРѕР»Р°
+	ld a,(pr_param+2)	; цвет
+	ld (hl),a		; печать атрибута символа
 	ld e,l
-	ld l,c			; l= СЃРёРјРІРѕР»
+	ld l,c			; l= символ
 	ld h,0
 	add hl,hl
 	add hl,hl
@@ -470,15 +470,15 @@ pchar2
 	inc a
 	cp 24
 	jr nz,pchar0
-	;СЃРґРІРёРі РІРІРµСЂС… РЅР° РѕРґРёРЅ СЃРёРјРІРѕР»
-	ld de,#4000		;РѕС‚РєСѓРґР°
-	ld hl,#4020		;РєСѓРґР°
-	ld b,#17		;РєРѕР»-РІРѕ СЃС‚СЂРѕРє
+	;сдвиг вверх на один символ
+	ld de,#4000		;откуда
+	ld hl,#4020		;куда
+	ld b,#17		;кол-во строк
 pchar4
 	push bc
 	call scroll
-	call ll693e		;СЃР»СѓР¶РµР±РЅС‹Рµ РїСЂРѕС†РµРґСѓСЂС‹ (РЅР° СЃС‚СЂ. РІРІРµСЂС…)
-;	call ll6949		;СЃР»СѓР¶РµР±РЅС‹Рµ РїСЂРѕС†РµРґСѓСЂС‹ (РЅР° СЃС‚СЂ. РІРЅРёР·)
+	call ll693e		;служебные процедуры (на стр. вверх)
+;	call ll6949		;служебные процедуры (на стр. вниз)
 	pop bc
 	djnz pchar4
 	jr pchar00
@@ -572,9 +572,9 @@ dectb_w
 
 ;scroll screen
 ;	push bc
-;	call scroll		;РІС‹Р·РѕРІ РїСЂРѕС†.СЃРґРІРёРіР°
-;	call ll693e		;СЃР»СѓР¶РµР±РЅС‹Рµ РїСЂРѕС†РµРґСѓСЂС‹ (РЅР° СЃС‚СЂ. РІРІРµСЂС…)
-;	call ll6949		;СЃР»СѓР¶РµР±РЅС‹Рµ РїСЂРѕС†РµРґСѓСЂС‹ (РЅР° СЃС‚СЂ. РІРЅРёР·)
+;	call scroll		;вызов проц.сдвига
+;	call ll693e		;служебные процедуры (на стр. вверх)
+;	call ll6949		;служебные процедуры (на стр. вниз)
 ;	pop bc
 ;	djnz main
 ;	ret
@@ -620,7 +620,7 @@ loop2
 	ld (de),a
 	jp pe,loop1
 	ret
-	;СЃР»СѓР¶РµР±РЅС‹Рµ РїСЂРѕС†РµРґСѓСЂС‹
+	;служебные процедуры
 ll692a
 	ld a,l
 	sub #20
@@ -660,23 +660,23 @@ ll6949
 	ld d,a
 	ret
 	
-;РћР¶РёРґР°РЅРёРµ РєР»Р°РІРёС€Рё
+;Ожидание клавиши
 anykey
-	xor a			;РІСЃРµ Р±РёС‚С‹ СЃР±СЂРѕС€РµРЅС‹
-	in a,(#fe)		;РѕРїСЂР°С€РёРІР°РµРј РІСЃРµ РїРѕР»СѓСЂСЏРґС‹
-	cpl			;РїРѕС‡С‚Рё СЌРєРІРёРІР°Р»РµРЅС‚РЅРѕ РєРѕРјР±РёРЅР°С†РёРё:
-	and 31 			;AND 31:CP 31,  РЅРѕ РєРѕСЂРѕС‡Рµ
-	jr z,anykey 		;РїРѕРєР° РЅРµ РЅР°Р¶РјСѓС‚ ANY KEY
+	xor a			;все биты сброшены
+	in a,(#fe)		;опрашиваем все полуряды
+	cpl			;почти эквивалентно комбинации:
+	and 31 			;AND 31:CP 31,  но короче
+	jr z,anykey 		;пока не нажмут ANY KEY
 	ret
 	
 	
-;СѓРїСЂР°РІР»СЏСЋС‰РёРµ РєРѕРґС‹
-;13 (0x0d)		- СЃР»РµРґ СЃС‚СЂРѕРєР°
-;17 (0x11),color	- РёР·РјРµРЅРёС‚СЊ С†РІРµС‚ РїРѕСЃР»РµРґСѓСЋС‰РёС… СЃРёРјРІРѕР»РѕРІ
-;23 (0x17),x,y		- РёР·РјРµРЅРёС‚СЊ РїРѕР·РёС†РёСЋ РЅР° РєРѕРѕСЂРґРёРЅР°С‚С‹ x,y
-;24 (0x18),x		- РёР·РјРµРЅРёС‚СЊ РїРѕР·РёС†РёСЋ РїРѕ x
-;25 (0x19),y		- РёР·РјРµРЅРёС‚СЊ РїРѕР·РёС†РёСЋ РїРѕ y
-;0			- РєРѕРЅРµС† СЃС‚СЂРѕРєРё
+;управляющие коды
+;13 (0x0d)		- след строка
+;17 (0x11),color	- изменить цвет последующих символов
+;23 (0x17),x,y		- изменить позицию на координаты x,y
+;24 (0x18),x		- изменить позицию по x
+;25 (0x19),y		- изменить позицию по y
+;0			- конец строки
 	
 	
 str1	
