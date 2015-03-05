@@ -192,13 +192,13 @@ signal kb_f_bus		: std_logic_vector(12 downto 1);
 signal kb_joy_bus	: std_logic_vector(4 downto 0);
 --signal kb_num		: std_logic := '1';
 -- PS/2 Mouse
-signal ms_but_bus       : std_logic_vector(7 downto 0);
-signal ms_present       : std_logic;
-signal ms_left          : std_logic;
-signal ms_x_bus         : std_logic_vector(7 downto 0);
-signal ms_y_bus         : std_logic_vector(7 downto 0);
-signal ms_clk_out       : std_logic;
-signal ms_buf_out       : std_logic;
+-- signal ms_but_bus       : std_logic_vector(7 downto 0);
+-- signal ms_present       : std_logic;
+-- signal ms_left          : std_logic;
+-- signal ms_x_bus         : std_logic_vector(7 downto 0);
+-- signal ms_y_bus         : std_logic_vector(7 downto 0);
+-- signal ms_clk_out       : std_logic;
+-- signal ms_buf_out       : std_logic;
 -- Video
 signal vid_a_bus	: std_logic_vector(12 downto 0);
 signal vid_di_bus	: std_logic_vector(7 downto 0);
@@ -233,17 +233,17 @@ signal spi_cs_n		: std_logic;
 signal spi_do_bus	: std_logic_vector(7 downto 0);
 signal spi_busy		: std_logic;
 -- PCF8583
-signal rtc_do_bus       : std_logic_vector(7 downto 0);
-signal rtc_wr           : std_logic;
+-- signal rtc_do_bus       : std_logic_vector(7 downto 0);
+-- signal rtc_wr           : std_logic;
 -- MC146818A
-signal mc146818_wr      : std_logic;
-signal mc146818_a_bus   : std_logic_vector(5 downto 0);
-signal mc146818_do_bus  : std_logic_vector(7 downto 0);
+--signal mc146818_wr      : std_logic;
+--signal mc146818_a_bus   : std_logic_vector(5 downto 0);
+--signal mc146818_do_bus  : std_logic_vector(7 downto 0);
 signal port_bff7        : std_logic;
 signal port_eff7_reg    : std_logic_vector(7 downto 0);
 -- TDA1543
-signal dac_data         : std_logic;
-signal dac_ws           : std_logic;
+--signal dac_data         : std_logic;
+--signal dac_ws           : std_logic;
 -- SDRAM
 signal sdr_do_bus	: std_logic_vector(7 downto 0);
 signal sdr_wr		: std_logic;
@@ -270,21 +270,21 @@ signal covox_b		: std_logic_vector(7 downto 0);
 signal covox_c		: std_logic_vector(7 downto 0);
 signal covox_d		: std_logic_vector(7 downto 0);
 -- General Sound
-signal gs_a		: std_logic_vector(13 downto 0) := "00000000000000";
-signal gs_b		: std_logic_vector(13 downto 0) := "00000000000000";
-signal gs_c		: std_logic_vector(13 downto 0) := "00000000000000";
-signal gs_d		: std_logic_vector(13 downto 0) := "00000000000000";
-signal gs_do_bus	: std_logic_vector(7 downto 0);
-signal gs_mdo		: std_logic_vector(7 downto 0);
-signal gs_ma		: std_logic_vector(18 downto 0);
-signal gs_mwe_n		: std_logic := '1';
+--signal gs_a		: std_logic_vector(13 downto 0) := "00000000000000";
+--signal gs_b		: std_logic_vector(13 downto 0) := "00000000000000";
+--signal gs_c		: std_logic_vector(13 downto 0) := "00000000000000";
+--signal gs_d		: std_logic_vector(13 downto 0) := "00000000000000";
+--signal gs_do_bus	: std_logic_vector(7 downto 0);
+--signal gs_mdo		: std_logic_vector(7 downto 0);
+--signal gs_ma		: std_logic_vector(18 downto 0);
+--signal gs_mwe_n		: std_logic := '1';
 -- UART
-signal uart_do_bus	: std_logic_vector(7 downto 0);
-signal uart_wr		: std_logic;
-signal uart_rd		: std_logic;
-signal uart_tx_busy	: std_logic;
-signal uart_rx_avail	: std_logic;
-signal uart_rx_error	: std_logic;
+--signal uart_do_bus	: std_logic_vector(7 downto 0);
+--signal uart_wr		: std_logic;
+--signal uart_rd		: std_logic;
+--signal uart_tx_busy	: std_logic;
+--signal uart_rx_avail	: std_logic;
+--signal uart_rx_error	: std_logic;
 -- CLOCK
 signal clk_bus		: std_logic;
 signal clk_sdr		: std_logic;
@@ -303,7 +303,6 @@ signal reset		: std_logic;
 signal areset		: std_logic;
 signal key_reset	: std_logic;
 signal locked		: std_logic;
-signal locked_sdr : std_logic;
 signal loader_act	: std_logic := '1';
 signal dos_act		: std_logic := '1';
 signal cpuclk		: std_logic;
@@ -312,13 +311,13 @@ signal key_f		: std_logic_vector(12 downto 1);
 --signal key		: std_logic_vector(12 downto 1) := "000100000100"; -- F9=14.0, F3=7.0
 signal key		: std_logic_vector(12 downto 1) := "000000000000"; -- F9=7.0, F3=3.5
 -- CNTR
-signal cntr_rgb		: std_logic_vector(5 downto 0);
-signal cntr_hs		: std_logic;
-signal cntr_vs		: std_logic;
-signal cntr_rd		: std_logic;
-signal cntr_io_flag	: std_logic;
-signal cntr_addr_reg	: std_logic_vector(15 downto 0);
-signal cntr_data_reg	: std_logic_vector(7 downto 0);
+--signal cntr_rgb		: std_logic_vector(5 downto 0);
+--signal cntr_hs		: std_logic;
+--signal cntr_vs		: std_logic;
+--signal cntr_rd		: std_logic;
+--signal cntr_io_flag	: std_logic;
+--signal cntr_addr_reg	: std_logic_vector(15 downto 0);
+--signal cntr_data_reg	: std_logic_vector(7 downto 0);
 -- divmmc
 signal divmmc_do	: std_logic_vector(7 downto 0);
 signal divmmc_amap	: std_logic;
@@ -327,7 +326,7 @@ signal divmmc_cs_n	: std_logic;
 signal divmmc_sclk	: std_logic;
 signal divmmc_mosi	: std_logic;
 signal mux		: std_logic_vector(3 downto 0);
-
+-- vga video
 signal VideoR		: std_logic_vector(1 downto 0);
 signal VideoG		: std_logic_vector(1 downto 0);
 signal VideoB		: std_logic_vector(1 downto 0);
@@ -674,7 +673,7 @@ begin
 		if cpu0_iorq_n = '0' and cpu0_wr_n = '0' and cpu0_a_bus = X"1FFD" then port_1ffd_reg <= cpu0_do_bus; end if;
 		if cpu0_iorq_n = '0' and cpu0_wr_n = '0' and cpu0_a_bus = X"7FFD" and port_7ffd_reg(5) = '0' then port_7ffd_reg <= cpu0_do_bus; end if;
 		if cpu0_iorq_n = '0' and cpu0_wr_n = '0' and cpu0_a_bus = X"DFFD" and port_7ffd_reg(5) = '0' then port_dffd_reg <= cpu0_do_bus; end if;
-		if cpu0_iorq_n = '0' and cpu0_wr_n = '0' and cpu0_a_bus = X"DFF7" and port_eff7_reg(7) = '1' then mc146818_a_bus <= cpu0_do_bus(5 downto 0); end if;
+		--if cpu0_iorq_n = '0' and cpu0_wr_n = '0' and cpu0_a_bus = X"DFF7" and port_eff7_reg(7) = '1' then mc146818_a_bus <= cpu0_do_bus(5 downto 0); end if;
 		if cpu0_m1_n = '0' and cpu0_mreq_n = '0' and cpu0_a_bus(15 downto 8) = X"3D" and port_7ffd_reg(4) = '1' then dos_act <= '1';
 		elsif cpu0_m1_n = '0' and cpu0_mreq_n = '0' and cpu0_a_bus(15 downto 14) /= "00" then dos_act <= '0'; end if;
 	end if;
@@ -739,8 +738,8 @@ dac_s_r <= std_logic_vector(unsigned(audio_r + 2048));
 
 -------------------------------------------------------------------------------
 -- Port I/O
-rtc_wr          <= '1' when (cpu0_a_bus(7 downto 5) = "100" and cpu0_a_bus(3 downto 0) = "1100" and cpu0_wr_n = '0' and cpu0_iorq_n = '0') else '0'; -- Port xx8C/xx9C[xxxxxxxx_100n1100]
-mc146818_wr     <= '1' when (port_bff7 = '1' and cpu0_wr_n = '0') else '0';
+--rtc_wr          <= '1' when (cpu0_a_bus(7 downto 5) = "100" and cpu0_a_bus(3 downto 0) = "1100" and cpu0_wr_n = '0' and cpu0_iorq_n = '0') else '0'; -- Port xx8C/xx9C[xxxxxxxx_100n1100]
+--mc146818_wr     <= '1' when (port_bff7 = '1' and cpu0_wr_n = '0') else '0';
 port_bff7       <= '1' when (cpu0_iorq_n = '0' and cpu0_a_bus = X"BFF7" and cpu0_m1_n = '1' and port_eff7_reg(7) = '1') else '0';
 spi_wr          <= '1' when (cpu0_iorq_n = '0' and cpu0_wr_n = '0' and cpu0_a_bus(7 downto 1) = "0000001") else '0';
 --uart_wr       <= '1' when (cpu0_iorq_n = '0' and cpu0_wr_n = '0' and cpu0_a_bus(7 downto 0) = X"BC") else '0';     -- Port xxBC[xxxxxxxx_10111100]
@@ -766,8 +765,8 @@ end process;
 
 -------------------------------------------------------------------------------
 -- Шина данных CPU0
-process (selector, rom_do_bus, sdr_do_bus, spi_do_bus, spi_busy, rtc_do_bus, mc146818_do_bus, kb_do_bus, zc_do_bus, ms_but_bus, ms_x_bus, ms_y_bus, kb_joy_bus, ssg_cn0_bus, ssg_cn1_bus, uart_tx_busy, uart_rx_error,
-                 uart_rx_avail, uart_do_bus, gs_do_bus, divmmc_do, port_7ffd_reg, port_dffd_reg)
+process (selector, rom_do_bus, sdr_do_bus, spi_do_bus, spi_busy, kb_do_bus, zc_do_bus, 
+			kb_joy_bus, ssg_cn0_bus, ssg_cn1_bus, divmmc_do, port_7ffd_reg, port_dffd_reg)
 begin
         case selector is
                 when "00000" => cpu0_di_bus <= rom_do_bus;
@@ -775,8 +774,8 @@ begin
                 when "00010" => cpu0_di_bus <= sdr_do_bus;
                 when "00011" => cpu0_di_bus <= spi_do_bus;
                 when "00100" => cpu0_di_bus <= spi_busy & "1111111";
-                when "00101" => cpu0_di_bus <= rtc_do_bus;
-                when "00110" => cpu0_di_bus <= mc146818_do_bus;
+--                when "00101" => cpu0_di_bus <= rtc_do_bus;
+--                when "00110" => cpu0_di_bus <= mc146818_do_bus;
                 when "00111" => cpu0_di_bus <= "111" & kb_do_bus;
                 when "01000" => cpu0_di_bus <= zc_do_bus;
 --              when "01001" => cpu0_di_bus <= ms_but_bus(7 downto 4) & '1' & not(ms_but_bus(2) & ms_but_bus(0) & ms_but_bus(1));
