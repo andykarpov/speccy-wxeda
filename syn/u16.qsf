@@ -133,8 +133,6 @@ set_location_assignment PIN_59 -to SDRAM_DQMH
 set_location_assignment PIN_43 -to SDRAM_WE_n
 set_location_assignment PIN_99 -to PS2_CLK
 set_location_assignment PIN_98 -to PS2_DAT
-set_location_assignment PIN_87 -to UART_RXD
-set_location_assignment PIN_86 -to UART_TXD
 set_location_assignment PIN_1 -to SD_CLK
 set_location_assignment PIN_2 -to SD_SI
 set_location_assignment PIN_141 -to SD_SO
@@ -154,6 +152,7 @@ set_location_assignment PIN_11 -to NCSO -comment "Flash 11 / EPCS 8"
 set_location_assignment PIN_10 -to DCLK -comment "Flash 10 / EPCS 12"
 set_location_assignment PIN_7 -to ASDO -comment "Flash 7 / EPCS 6"
 set_location_assignment PIN_65 -to SDRAM_A[12]
+set_global_assignment -name VHDL_FILE ../rtl/sdram/sdram.vhd
 set_global_assignment -name VHDL_FILE ../rtl/hdmi/ram_scan.vhd
 set_global_assignment -name VHDL_FILE ../rtl/keyboard/ps2_keyboard_mapper.vhd
 set_global_assignment -name VHDL_FILE ../rtl/keyboard/ps2_keyboard.vhd
@@ -176,13 +175,8 @@ set_global_assignment -name VHDL_FILE ../rtl/t80/T80.vhd
 set_global_assignment -name VHDL_FILE ../rtl/ssg/ay8910.vhd
 set_global_assignment -name VHDL_FILE ../rtl/spi/spi.vhd
 set_global_assignment -name VHDL_FILE ../rtl/soundrive/soundrive.vhd
-set_global_assignment -name VHDL_FILE ../rtl/sdram/sdram.vhd
 set_global_assignment -name VHDL_FILE ../rtl/sd/zcontroller.vhd
-set_global_assignment -name SDC_FILE u16.sdc
 set_global_assignment -name VHDL_FILE ../rtl/ram/altram2.vhd
 set_global_assignment -name VHDL_FILE ../rtl/ram/altram0.vhd
-set_global_assignment -name VHDL_FILE ../rtl/pll/altpll0.vhd
-set_global_assignment -name QIP_FILE ../rtl/pll/altpll0.qip
-set_global_assignment -name CDF_FILE u16.cdf
 set_global_assignment -name QIP_FILE ../rtl/pll/altpll1.qip
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

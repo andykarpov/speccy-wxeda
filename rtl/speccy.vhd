@@ -140,8 +140,8 @@ port (
 	BUZZER	: out std_logic;
 	
 	-- UART
-	UART_RXD	: in std_logic;
-	UART_TXD : out std_logic;
+--	UART_RXD	: inout std_logic;
+--	UART_TXD : inout std_logic;
 	
 	-- PS/2 Keyboard
 	PS2_CLK	: inout std_logic;
@@ -340,22 +340,15 @@ signal clk14		: std_logic;
 begin
 
 -- PLL
-U0: entity work.altpll0
+U0: entity work.altpll1
 port map (
 	areset		=> areset,
 	inclk0		=> CLK_48MHZ,	--  48.0 MHz
 	locked		=> locked,
-	c0				=> clk_bus,	--  28.0 MHz
-	c1				=> clk7,	--clk_codec,		--   7 MHz
-	c2				=> clk14	--clk_interface,	--  14 MHz
-);
-	
-U00: entity work.altpll1
-port map (
-	areset		=> areset,
-	inclk0		=> CLK_48MHZ,	--  48.0 MHz
-	locked		=> locked_sdr,
-	c0				=> clk_sdr); -- sdram 84.0 MHz
+	c0				=> clk_sdr, -- 84 MHz
+	c1				=> clk_bus, -- 28 MHz
+	c2				=> clk14, -- 14 MHz
+	c3				=> clk7); -- 7 MHz
  	
 -- Zilog Z80A CPU
 U1: entity work.T80s
@@ -606,8 +599,7 @@ end process;
 SDRAM_CKE <= '1'; -- pullup
 SDRAM_CS_N <= '0'; -- pulldown
 
-BUZZER <= '0'; -- todo
-UART_TXD <= '0'; -- todo
+BUZZER <= '1'; -- todo
 
 ena_14mhz <= ena_cnt(0);
 ena_7mhz <= ena_cnt(1) and ena_cnt(0);
