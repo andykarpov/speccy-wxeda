@@ -858,15 +858,15 @@ port map (
 	O_VIDEO(1 downto 0)	=> VideoB,
 	O_HSYNC		=> HSync,
 	O_VSYNC		=> VSync,
-	O_CMPBLK_N	=> sblank,
+	O_CMPBLK_N	=> Sblank,
 	CLK		=> clk7,
 	CLK_x2		=> clk14);
 
 -- VGA output
 
-VGA_R <= VideoR(1 downto 0) & "000";
-VGA_G <= VideoG(1 downto 0) & "0000";
-VGA_B <= VideoB(1 downto 0) & "000";
+VGA_R <= VideoR(1) & VideoR(1 downto 0) & "00" when Sblank = '1' else "00000";
+VGA_G <= VideoG(1) & VideoG(1 downto 0) & "000" when Sblank = '1' else "000000";
+VGA_B <= VideoB(1) & VideoB(1 downto 0) & "00" when Sblank = '1' else "00000";
 VGA_HS <= HSync;
 VGA_VS <= VSync;
 
