@@ -729,8 +729,21 @@ end process;
 --audio_r <= ("000" & port_xxfe_reg(4) & "00000000000") + ("000" & ssg_cn0_c & "0000") + ("000" & ssg_cn0_b & "0000") + ("000" & ssg_cn1_c & "0000") + ("000" & ssg_cn1_b & "0000") + ("000" & covox_c & "0000") + ("000" & covox_d & "0000") + ("00" & gs_c) + ("00" & gs_d);
 
 -- 12bit Delta-Sigma DAC
-audio_l <= ("0000" & port_xxfe_reg(4) & "0000000") + ("0000" & ssg_cn0_a) + ("0000" & ssg_cn0_b) + ("0000" & ssg_cn1_a) + ("0000" & ssg_cn1_b) + ("0000" & covox_a) + ("0000" & covox_b);
-audio_r <= ("0000" & port_xxfe_reg(4) & "0000000") + ("0000" & ssg_cn0_c) + ("0000" & ssg_cn0_b) + ("0000" & ssg_cn1_c) + ("0000" & ssg_cn1_b) + ("0000" & covox_c) + ("0000" & covox_d);
+audio_l <= ("0000" & port_xxfe_reg(4) & "0000000") + 
+			  ("0000" & ssg_cn0_a) + 
+			  ("0000" & ssg_cn0_b) + 
+			  ("0000" & ssg_cn1_a) + 
+			  ("0000" & ssg_cn1_b) + 
+			  ("0000" & covox_a) + 
+			  ("0000" & covox_b);
+			  
+audio_r <= ("0000" & port_xxfe_reg(4) & "0000000") + 
+			  ("0000" & ssg_cn0_c) + 
+			  ("0000" & ssg_cn0_b) + 
+			  ("0000" & ssg_cn1_c) + 
+			  ("0000" & ssg_cn1_b) + 
+			  ("0000" & covox_c) + 
+			  ("0000" & covox_d);
 
 -- Convert signed audio data (range 127 to -128) to simple unsigned value.
 dac_s_l <= std_logic_vector(unsigned(audio_l + 2048));

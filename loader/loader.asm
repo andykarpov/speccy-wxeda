@@ -10,6 +10,7 @@
 ; V0.9	 24.07.2014	одаптирован для U16 EP3C10
 ; V0.9.1 25.07.2014	одаптирован для U16 EP4CE22/EP3C25
 ; V0.9.2 09.08.2014	поддержка ENC424J600
+; V0.0.3Z03.03.2015	убрана поддержка RTC и CMOS
 
 system_port	equ #0001	; bit2 = (0:Loader ON, 1:Loader OFF); bit1 = (NC); bit0 = (0:M25P16, 1:ENC424J600)
 mask_port	equ #0000	; Маска порта EXT_MEM_PORT по AND
@@ -231,7 +232,7 @@ spi_loader2
 	ld hl,str0	;any key
 	call print_str
 
-	call anykey
+;	call anykey
 
 	ld a,%00000100	; bit2 = (0:Loader ON, 1:Loader OFF); bit1 = (NC); bit0 = (0:M25P16, 1:ENC424J600)
 	ld bc,system_port
@@ -683,7 +684,7 @@ str1
 ;          "                                "
 	db 23,0,0,17,47,"ReVerSE-U16 By MVV, 2014",13,13,13
 	db 17,7,"FPGA SoftCore - Speccy v0.9.2",13
-	db "(build 20140809)",13,13
+	db "(build 20150303)",13,13
 	db "Copying data from FLASH...",0
 str3
 	db 17,4," done",17,7,13,0
