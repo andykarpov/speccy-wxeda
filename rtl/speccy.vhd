@@ -172,7 +172,7 @@ signal cpu0_inta_n	: std_logic;
 signal cpu0_m1_n	: std_logic;
 signal cpu0_rfsh_n	: std_logic;
 signal cpu0_ena		: std_logic;
-signal cpu0_mult	: std_logic_vector(1 downto 0);
+signal cpu0_mult	: std_logic_vector(2 downto 0);
 signal cpu0_mem_wr	: std_logic;
 signal cpu0_mem_rd	: std_logic;
 signal cpu0_nmi_n	: std_logic;
@@ -322,7 +322,7 @@ signal cpuclk		: std_logic;
 signal selector		: std_logic_vector(4 downto 0);
 signal key_f		: std_logic_vector(12 downto 1);
 --signal key		: std_logic_vector(12 downto 1) := "000100000100"; -- F9=14.0, F3=7.0
-signal key		: std_logic_vector(12 downto 1) := "000000000000"; -- F9=7.0, F3=3.5
+signal key		: std_logic_vector(12 downto 1) := "000000000001"; -- F1=3.5, F2=7.0, F3=14
 -- CNTR
 --signal cntr_rgb		: std_logic_vector(5 downto 0);
 --signal cntr_hs		: std_logic;
@@ -721,20 +721,16 @@ sdr_rfsh <= not cpu0_rfsh_n;
 -------------------------------------------------------------------------------
 -- Делитель
 cpuclk <= clk_bus and cpu0_ena;
---cpu0_mult <= key_f(9) & key_f(3);	-- 00 = 3.5MHz; 01 = 7.0MHz; 10 = 7MHz; 11 = 14MHz
---process (cpu0_mult, ena_3_5mhz, ena_7mhz, ena_14mhz)
---begin
---	case cpu0_mult is
---		when "00" => cpu0_ena <= ena_3_5mhz;
---		when "01" => cpu0_ena <= ena_7mhz;
---		when "10" => cpu0_ena <= ena_7mhz;
---		when "11" => cpu0_ena <= ena_14mhz;
---		when others => null;
---	end case;
---end process;
-
-cpu0_mult <= "00"; -- default to 3.5MHz
-cpu0_ena <= ena_3_5mhz;
+cpu0_mult <= key_f(3) & key_f(2) & key_f(1); -- functional keys state
+process (cpu0_mult, ena_3_5mhz, ena_7mhz, ena_14mhz)
+begin
+	case cpu0_mult is
+		when "001" => cpu0_ena <= ena_3_5mhz;
+		when "010" => cpu0_ena <= ena_7mhz;
+		when "100" => cpu0_ena <= ena_14mhz;
+		when others => null;
+	end case;
+end process;
 
 -------------------------------------------------------------------------------
 -- SD					
@@ -875,14 +871,27 @@ zc_rd           <= '1' when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bu
 -------------------------------------------------------------------------------
 -- Функциональные клавиши Fx
 
--- F3 = 3.5/7.0MHz, F4 = CPU RESET, F5 = NMI, F6 = divMMC, F7 = рамка, F8 = перефирийный контроллер, F9 = turbo 7.0/14.0MHz, F11 = soundrive, F12 = видео режим 0: Spectrum; 1: Pentagon;
+-- F1/F2/F3 = 3.5/7.0/14MHz, F4 = CPU RESET, F5 = NMI, F6 = divMMC, F7 = рамка, F8 = перефирийный контроллер, F11 = soundrive, F12 = видео режим 0: Spectrum; 1: Pentagon;
 process (clk_bus, key, kb_f_bus, key_f)
 begin
 	if (clk_bus'event and clk_bus = '1') then
+
 		key <= kb_f_bus;
-		if (kb_f_bus /= key) then
-			key_f <= key_f xor key;
+		
+		if (kb_f_bus(12 downto 4) /= key(12 downto 4)) then
+			key_f(12 downto 4) <= key_f(12 downto 4) xor key(12 downto 4);
 		end if;
+		
+		if (kb_f_bus(3) /= key(3)) then
+			key_f(3 downto 1) <= "100";
+		end if;
+		if (kb_f_bus(2) /= key(2)) then
+			key_f(3 downto 1) <= "010";
+		end if;
+		if (kb_f_bus(1) /= key(1)) then
+			key_f(3 downto 1) <= "001";
+		end if;
+
 	end if;
 end process;
 
