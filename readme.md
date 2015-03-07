@@ -40,7 +40,7 @@
 прошить впаянную на девборку SPI флешку:
 
 - В девборду заливается прошивка [https://github.com/andykarpov/speccy-wxeda-sdcard-bridge](https://github.com/andykarpov/speccy-wxeda-sdcard-bridge) через JTAG, которая реализует соединение пинов W25Q32 с внешними пинами гребенки
-- Пины гребенки **2,3,4,5 (DI,DO,CLK,CS)**, подключенные к SD-карте и **GND** (средний пин гребенки 1x3 от выпаянного IR-приемника) 
+- Пины гребенки **2,3,4,5 (DI,DO,CLK,CS)**, подключенные (виртуально) к W25Q32 и **GND** (средний пин гребенки 1x3 от выпаянного IR-приемника) 
     соединяются с **GPIO** пинами Raspberry Pi (**19,21,23,24,25** соответственно). Подробнее: [http://flashrom.org/RaspberryPi](http://flashrom.org/RaspberryPi)
 - На Raspberry Pi установлена последняя версия Raspbian
 - На Raspberry Pi скачивается и устанавливается проект flashrom - [http://flashrom.org/Downloads](http://flashrom.org/Downloads) + необходимые зависимости для его сборки
