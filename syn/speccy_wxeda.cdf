@@ -4,7 +4,7 @@ JedecChain;
 	DefaultMfr(6E);
 
 	P ActionCode(Cfg)
-		Device PartName(EP4CE6E22) Path("/media/sf_Projects/Retrocomp/Speccy/u16-speccy-wxeda/syn/") File("u16.sof") MfrSpec(OpMask(1));
+		Device PartName(EP4CE6E22) Path("/media/sf_Projects/Retrocomp/Speccy/u16-speccy-wxeda/syn/") File("speccy_wxeda.sof") MfrSpec(OpMask(1));
 
 ChainEnd;
 

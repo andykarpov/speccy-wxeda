@@ -1,4 +1,4 @@
-## Generated SDC file "u16.sdc"
+## Generated SDC file "speccy_wxeda.sdc"
 
 ## Copyright (C) 1991-2011 Altera Corporation
 ## Your use of Altera Corporation's design tools, logic functions 
