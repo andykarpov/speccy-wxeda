@@ -691,7 +691,7 @@ str3
 str4
 	db 13,"Initialization MC146818...",0
 str0
-	db 13,13,23,0,23,17,7,"Press ENTER to Resume",0
+	db 13,13,23,0,23,17,7,"Booting, please wait",0
 
 font	
 	INCBIN "font.bin"

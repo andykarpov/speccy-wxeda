@@ -152,6 +152,11 @@ set_location_assignment PIN_11 -to NCSO -comment "Flash 11 / EPCS 8"
 set_location_assignment PIN_10 -to DCLK -comment "Flash 10 / EPCS 12"
 set_location_assignment PIN_7 -to ASDO -comment "Flash 7 / EPCS 6"
 set_location_assignment PIN_65 -to SDRAM_A[12]
+set_global_assignment -name VHDL_FILE ../rtl/sound/turbosound.vhd
+set_global_assignment -name VHDL_FILE ../rtl/sound/soundrive.vhd
+set_global_assignment -name VHDL_FILE ../rtl/sound/SoundMixer.vhd
+set_global_assignment -name VHDL_FILE ../rtl/sound/dac.vhd
+set_global_assignment -name VHDL_FILE ../rtl/sound/ay8910.vhd
 set_global_assignment -name VHDL_FILE ../rtl/speccy.vhd
 set_global_assignment -name VHDL_FILE ../rtl/sdram/sdram.vhd
 set_global_assignment -name VHDL_FILE ../rtl/video/video.vhd
@@ -162,7 +167,6 @@ set_global_assignment -name VHDL_FILE ../rtl/keyboard/ps2_keyboard_mapper.vhd
 set_global_assignment -name VHDL_FILE ../rtl/keyboard/ps2_keyboard.vhd
 set_global_assignment -name VHDL_FILE ../rtl/keyboard/ps2_debouncer.vhd
 set_global_assignment -name VHDL_FILE ../rtl/keyboard/ps2_controller.vhd
-set_global_assignment -name VHDL_FILE ../rtl/dac/dac.vhd
 set_global_assignment -name VHDL_FILE ../rtl/t80/T80s.vhd
 set_global_assignment -name VHDL_FILE ../rtl/t80/T80_Reg.vhd
 set_global_assignment -name VHDL_FILE ../rtl/t80/T80_Pack.vhd
@@ -170,9 +174,6 @@ set_global_assignment -name VHDL_FILE ../rtl/t80/T80_MCode.vhd
 set_global_assignment -name VHDL_FILE ../rtl/t80/T80_ALU.vhd
 set_global_assignment -name VHDL_FILE ../rtl/t80/T80.vhd
 set_global_assignment -name VHDL_FILE ../rtl/spi/spi.vhd
-set_global_assignment -name VHDL_FILE ../rtl/soundrive/soundrive.vhd
-set_global_assignment -name VHDL_FILE ../rtl/turbosound/turbosound.vhd
-set_global_assignment -name VHDL_FILE ../rtl/ssg/ay8910.vhd
 set_global_assignment -name VHDL_FILE ../rtl/sd/zcontroller.vhd
 set_global_assignment -name VHDL_FILE ../rtl/divmmc/divmmc.vhd
 set_global_assignment -name VHDL_FILE ../rtl/ram/altram2.vhd

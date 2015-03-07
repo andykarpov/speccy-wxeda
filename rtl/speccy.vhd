@@ -259,16 +259,29 @@ signal ssg_cn1_bus	: std_logic_vector(7 downto 0);
 signal ssg_cn1_a	: std_logic_vector(7 downto 0);
 signal ssg_cn1_b	: std_logic_vector(7 downto 0);
 signal ssg_cn1_c	: std_logic_vector(7 downto 0);
-signal audio_l		: std_logic_vector(11 downto 0);
-signal audio_r		: std_logic_vector(11 downto 0);
-signal dac_s_l		: std_logic_vector(11 downto 0);
-signal dac_s_r		: std_logic_vector(11 downto 0);
+signal audio_l		: std_logic_vector(15 downto 0);
+signal audio_r		: std_logic_vector(15 downto 0);
+signal dac_s_l		: std_logic_vector(15 downto 0);
+signal dac_s_r		: std_logic_vector(15 downto 0);
 signal sound		: std_logic_vector(7 downto 0);
 -- Soundrive
 signal covox_a		: std_logic_vector(7 downto 0);
 signal covox_b		: std_logic_vector(7 downto 0);
 signal covox_c		: std_logic_vector(7 downto 0);
 signal covox_d		: std_logic_vector(7 downto 0);
+-- beeper
+signal beeper		: std_logic;
+type  array_3x24   is array (0 to 2) of unsigned( 23 downto 0);
+type  weight_array is array (0 to 3, 0 to 1) of array_3x24;
+signal weightAY_L       : array_3x24;
+signal weightAY_R       : array_3x24;
+-- A B C (L)  A B C (R)
+constant weigthAyTable : weight_array := (
+    ((x"000000",x"000000",x"000000"),(x"000000",x"000000",x"000000")),
+    ((x"00007e",x"000029",x"000058"),(x"000029",x"00007e",x"000058")),
+    ((x"00007e",x"000058",x"000029"),(x"000029",x"000058",x"00007e")),
+    ((x"000055",x"000055",x"000055"),(x"000055",x"000055",x"000055"))
+);
 -- General Sound
 --signal gs_a		: std_logic_vector(13 downto 0) := "00000000000000";
 --signal gs_b		: std_logic_vector(13 downto 0) := "00000000000000";
@@ -586,6 +599,93 @@ port map (
     DAC_DATA		=> dac_s_r,
     DAC_OUT   		=> dac_out_r);
 
+-- SoundMixer	 
+U21: entity work.SoundMixer
+port map (
+	CLK => clk_bus,
+	
+	I_AUDIO1_AY_A => ssg_cn0_a,
+	I_AUDIO1_AY_B => ssg_cn0_b,
+	I_AUDIO1_AY_C => ssg_cn0_c,
+	
+	I_AUDIO2_AY_A => ssg_cn1_a,
+	I_AUDIO2_AY_B => ssg_cn1_b,
+	I_AUDIO2_AY_C => ssg_cn1_c,
+	
+	WEIGHT_AUDIO1_AY_A => weightAY_L(0),--AY1 - WEIGHT
+	WEIGHT_AUDIO1_AY_B => weightAY_L(1),-- sum should be <=1
+	WEIGHT_AUDIO1_AY_C => weightAY_L(2),
+				 
+	WEIGHT_AUDIO2_AY_A => weightAY_L(0),--AY2 - WEIGHT
+	WEIGHT_AUDIO2_AY_B => weightAY_L(1),-- sum should be <=1
+	WEIGHT_AUDIO2_AY_C => weightAY_L(2),
+	
+	I_AUDIO_AUX_1  => covox_a,--COVOX C1
+   I_AUDIO_AUX_2  => covox_b,--COVOX C2
+   I_AUDIO_AUX_3  => x"0000",
+	
+	WEIGHT_AUDIO_AUX_1 => x"000100",--COVOX C1
+   WEIGHT_AUDIO_AUX_2 => x"000100",--COVOX C2
+   WEIGHT_AUDIO_AUX_3 => x"000001",--SID -- in data in 16bit format
+	
+	I_AUDIO_BEEPER  => beeper,
+	I_AUDIO_TAPE    => '0',
+	
+	WEIGHT_AUDIO_BEEPER => x"000050",
+   WEIGHT_AUDIO_TAPE   => x"000020",
+	
+	I_AY1_ENABLED  => '1',
+   I_AY2_ENABLED  => '1',
+   I_AUX1_ENABLED => '1',
+   I_AUX2_ENABLED => '1',
+   I_AUX3_ENABLED => '0',
+   O_AUDIO        => audio_l
+);
+
+U22: entity work.SoundMixer
+port map (
+	CLK => clk_bus,
+	
+	I_AUDIO1_AY_A => ssg_cn0_a,
+	I_AUDIO1_AY_B => ssg_cn0_b,
+	I_AUDIO1_AY_C => ssg_cn0_c,
+	
+	I_AUDIO2_AY_A => ssg_cn1_a,
+	I_AUDIO2_AY_B => ssg_cn1_b,
+	I_AUDIO2_AY_C => ssg_cn1_c,
+	
+	WEIGHT_AUDIO1_AY_A => weightAY_R(0),--AY1 - WEIGHT
+	WEIGHT_AUDIO1_AY_B => weightAY_R(1),-- sum should be <=1
+	WEIGHT_AUDIO1_AY_C => weightAY_R(2),
+				 
+	WEIGHT_AUDIO2_AY_A => weightAY_R(0),--AY2 - WEIGHT
+	WEIGHT_AUDIO2_AY_B => weightAY_R(1),-- sum should be <=1
+	WEIGHT_AUDIO2_AY_C => weightAY_R(2),
+	
+	I_AUDIO_AUX_1  => covox_c,--COVOX C3
+   I_AUDIO_AUX_2  => covox_d,--COVOX C4
+   I_AUDIO_AUX_3  => x"0000",
+	
+	WEIGHT_AUDIO_AUX_1 => x"000100",--COVOX C1
+   WEIGHT_AUDIO_AUX_2 => x"000100",--COVOX C2
+   WEIGHT_AUDIO_AUX_3 => x"000001",--SID -- in data in 16bit format
+	
+	I_AUDIO_BEEPER  => beeper,
+	I_AUDIO_TAPE    => '0',
+	
+	WEIGHT_AUDIO_BEEPER => x"000050",
+   WEIGHT_AUDIO_TAPE   => x"000020",
+	
+	I_AY1_ENABLED  => '1',
+   I_AY2_ENABLED  => '1',
+   I_AUX1_ENABLED => '1',
+   I_AUX2_ENABLED => '1',
+   I_AUX3_ENABLED => '0',
+   O_AUDIO        => audio_r
+);
+	 
+	 
+	 
 -------------------------------------------------------------------------------
 -- Формирование глобальных сигналов
 process (clk_bus)
@@ -597,8 +697,6 @@ end process;
 
 SDRAM_CKE <= '1'; -- pullup
 SDRAM_CS_N <= '0'; -- pulldown
-
-BUZZER <= '1'; -- todo
 
 ena_14mhz <= ena_cnt(0);
 ena_7mhz <= ena_cnt(1) and ena_cnt(0);
@@ -724,30 +822,42 @@ end process;
 
 
 -------------------------------------------------------------------------------
--- Audio mixer
---audio_l <= ("000" & port_xxfe_reg(4) & "00000000000") + ("000" & ssg_cn0_a & "0000") + ("000" & ssg_cn0_b & "0000") + ("000" & ssg_cn1_a & "0000") + ("000" & ssg_cn1_b & "0000") + ("000" & covox_a & "0000") + ("000" & covox_b & "0000") + ("00" & gs_a) + ("00" & gs_b);
---audio_r <= ("000" & port_xxfe_reg(4) & "00000000000") + ("000" & ssg_cn0_c & "0000") + ("000" & ssg_cn0_b & "0000") + ("000" & ssg_cn1_c & "0000") + ("000" & ssg_cn1_b & "0000") + ("000" & covox_c & "0000") + ("000" & covox_d & "0000") + ("00" & gs_c) + ("00" & gs_d);
+-- Audio
+process( clk_bus )
+begin
+	if clk_bus'event and clk_bus = '1' then
+		weightAY_L <= weigthAyTable(1,0);
+		weightAY_R <= weigthAyTable(1,1);
+	end if;
+end process;
+
+beeper <= port_xxfe_reg(4) when loader_act = '0' else '0';
 
 -- 12bit Delta-Sigma DAC
-audio_l <= ("0000" & port_xxfe_reg(4) & "0000000") + 
-			  ("0000" & ssg_cn0_a) + 
-			  ("0000" & ssg_cn0_b) + 
-			  ("0000" & ssg_cn1_a) + 
-			  ("0000" & ssg_cn1_b) + 
-			  ("0000" & covox_a) + 
-			  ("0000" & covox_b);
+--audio_l <= ("00000" & port_xxfe_reg(4) & "000000") + 
+--			  ("0000" & ssg_cn0_a) + 
+--			  ("0000" & ssg_cn0_b) + 
+--			  ("0000" & ssg_cn1_a) + 
+--			  ("0000" & ssg_cn1_b) + 
+--			  ("0000" & covox_a) + 
+--			  ("0000" & covox_b);
 			  
-audio_r <= ("0000" & port_xxfe_reg(4) & "0000000") + 
-			  ("0000" & ssg_cn0_c) + 
-			  ("0000" & ssg_cn0_b) + 
-			  ("0000" & ssg_cn1_c) + 
-			  ("0000" & ssg_cn1_b) + 
-			  ("0000" & covox_c) + 
-			  ("0000" & covox_d);
+--audio_r <= ("00000" & port_xxfe_reg(4) & "000000") + 
+--			  ("0000" & ssg_cn0_c) + 
+--			  ("0000" & ssg_cn0_b) + 
+--			  ("0000" & ssg_cn1_c) + 
+--			  ("0000" & ssg_cn1_b) + 
+--			  ("0000" & covox_c) + 
+--			  ("0000" & covox_d);
 
 -- Convert signed audio data (range 127 to -128) to simple unsigned value.
-dac_s_l <= std_logic_vector(unsigned(audio_l + 2048));
-dac_s_r <= std_logic_vector(unsigned(audio_r + 2048));
+--dac_s_l <= std_logic_vector(unsigned(audio_l + 2048));
+--dac_s_r <= std_logic_vector(unsigned(audio_r + 2048));
+dac_s_l <= audio_l;
+dac_s_r <= audio_r;
+
+-- beeper
+BUZZER <= '1';--port_xxfe_reg(4);
 
 -------------------------------------------------------------------------------
 -- Port I/O
