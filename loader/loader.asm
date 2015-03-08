@@ -682,10 +682,10 @@ anykey
 	
 str1	
 ;          "                                "
-	db 23,0,0,17,47,"ReVerSE-U16 By MVV, 2014",13,13,13
-	db 17,7,"FPGA SoftCore - Speccy v0.9.2",13
-	db "(build 20150303)",13,13
-	db "Copying data from FLASH...",0
+	db 23,0,0,17,#f0,"ReVerSE-U16 By MVV, 2014",13,13,13
+	db 17,7,"FPGA SoftCore - Speccy on WXEDA",13
+	db 17,7,"(build 2015-03-08)",13,13
+	db 17,7,"Copying data from FLASH...",0
 str3
 	db 17,4," done",17,7,13,0
 str4
