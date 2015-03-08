@@ -996,9 +996,9 @@ port map (
 
 -- VGA output
 
-VGA_R <= VideoR(1) & VideoR(1 downto 0) & "00" when Sblank = '1' else "00000";
-VGA_G <= VideoG(1) & VideoG(1 downto 0) & "000" when Sblank = '1' else "000000";
-VGA_B <= VideoB(1) & VideoB(1 downto 0) & "00" when Sblank = '1' else "00000";
+VGA_R <= VideoR(1) & VideoR(0) & "000"  when Sblank = '1' else "00000";
+VGA_G <= VideoG(1) & VideoG(0) & "0000" when Sblank = '1' else "000000";
+VGA_B <= VideoB(1) & VideoB(0) & "000"  when Sblank = '1' else "00000";
 VGA_HS <= HSync;
 VGA_VS <= VSync;
 
