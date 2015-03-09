@@ -796,26 +796,22 @@ begin
 end process;
 
 -------------------------------------------------------------------------------
--- Flash W25Q32 (excluging ENC24J600)
-ASDO <= spi_si;
-DCLK <= spi_clk;
+-- Flash W25Q32 / SD
 
-process (port_0001_reg, spi_si, spi_so, spi_clk, spi_cs_n)
+process (port_0001_reg, spi_si, spi_so, spi_clk, spi_cs_n, DATA0)
 begin
-	-- eth
+		-- SD
         if port_0001_reg(0) = '1' then
                 NCSO <= '1';
-                spi_so <= '0';
+                spi_so <= 'X';
         -- w25q32
         else
                 NCSO <= spi_cs_n;
+                ASDO <= spi_si;
+				DCLK <= spi_clk;
                 spi_so <= DATA0;
         end if;
 end process;
-
---NCSO <= spi_cs_n;
---spi_so <= DATA0;
-
 
 -------------------------------------------------------------------------------
 -- Audio
