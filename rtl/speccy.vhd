@@ -1,6 +1,7 @@
--------------------------------------------------------------------[03.03.2015]
--- u16-Speccy Version 0.9.3Z
+-------------------------------------------------------------------[20.03.2015]
+-- u16-Speccy Version 0.9.4Z
 -- DEVBOARD ZrTech WXEDA
+-- Ported by Andy Karpov
 -------------------------------------------------------------------------------
 -- V0.1	   12.02.2011  TOP          	: первая версия
 -- V0.5    20.11.2011  gs           	: добавлен GS
@@ -26,11 +27,12 @@
 --                     sdram        	: добавлены защелки RD, WR, RFSH для предотвращения повторного захвата запросов
 --                     TOP          	: добавлено чтение из портов 7FFD и DFFD. Кнопка 'F3' = 3.5MHz/7.0MHz, 'F9' = 7.0MHz/14.0MHz
 -------------------------------------------------------------------------------
--- V0.9.0  14.07.2014  TOP       	: перенос на плату ReVerSE-U16. Добавлены модули hdmi.vhd, serializer.vhd, encoder.vhd
---                     video       	: добавлен сигнал BLANK                    
--- V0.9.2  29.07.2014  dac       	: добавлен Delta-Sigma DAC
--- V0.9.3  09.08.2014  TOP		: добавлен ENC424J600
--- V0.9.3Z 03.03.2015  WXEDA	: ported to ZrTech WXEDA
+-- V0.9.0  14.07.2014  TOP       		: перенос на плату ReVerSE-U16. Добавлены модули hdmi.vhd, serializer.vhd, encoder.vhd
+--                     video       		: добавлен сигнал BLANK                    
+-- V0.9.2  29.07.2014  dac       		: добавлен Delta-Sigma DAC
+-- V0.9.3  09.08.2014  TOP				: добавлен ENC424J600
+-- V0.9.3Z 03.03.2015  WXEDA			: ported to ZrTech WXEDA
+-- V0.9.4Z 20.03.2015  WXEDA			: added new loader based on ZpuFlex to load initial rom from FAT partition
 
 -- http://zx.pk.ru/showthread.php?t=13875
 
@@ -73,34 +75,17 @@ use IEEE.std_logic_1164.all;
 use IEEE.std_logic_unsigned.all;
 use IEEE.numeric_std.all; 
 
--- M9K 46K:
--- 0000-B7FF
-
--- SDRAM 32M:
--- 0000000-1FFFFFF
-
+-- SDRAM map:
 -- 4 3210 9876 5432 1098 7654 3210
 -- 0 00xx_xxxx xxxx_xxxx xxxx_xxxx	0000000-03FFFFF		RAM 	4MB
 -- 0 xxxx_xxxx xxxx_xxxx xxxx_xxxx	0400000-0FFFFFF		-----------
--- 1 0000_0xxx xxxx_xxxx xxxx_xxxx	1000000-107FFFF		divMMC 512K
--- 1 0000_1000 00xx_xxxx xxxx_xxxx	1080000-1003FFF		GLUK	16K
--- 1 0000_1000 01xx_xxxx xxxx_xxxx	1084000-1007FFF		TR-DOS	16K
--- 1 0000_1000 10xx_xxxx xxxx_xxxx	1088000-100BFFF		ROM'86	16K
--- 1 0000_1000 11xx_xxxx xxxx_xxxx	108C000-100FFFF		ROM'82	16K
--- 1 0000_1001 000x_xxxx xxxx_xxxx	1090000-1091FFF		divMMC	 8K
-
-
--- FLASH 4096K Winbond W25Q32:
--- 00000-5FFFF		empty
--- 60000-63FFF		General Sound ROM	16K  ОТКЛЮЧЕНО
--- 64000-67FFF		General Sound ROM	16K  ОТКЛЮЧЕНО
--- 68000-6BFFF		GLUK 			16K
--- 6C000-6FFFF		TR-DOS 			16K
--- 70000-73FFF		OS'86 			16K
--- 74000-77FFF		OS'82 			16K
--- 78000-7AFFF		DivMMC			 8K
--- 7B000-7BFFF		свободно		 8К
--- 7C000-7FFFF		свободно		16К
+-- 1 0000_0xxx xxxx_xxxx xxxx_xxxx	1000000-107FFFF		divMMC 512K (reserved)
+-- 1 0000_1000 00xx_xxxx xxxx_xxxx	1080000-1003FFF		GLUK	16K (SPECCY.ROM)
+-- 1 0000_1000 01xx_xxxx xxxx_xxxx	1084000-1007FFF		TR-DOS	16K (SPECCY.ROM)
+-- 1 0000_1000 10xx_xxxx xxxx_xxxx	1088000-100BFFF		ROM'86	16K (SPECCY.ROM)
+-- 1 0000_1000 11xx_xxxx xxxx_xxxx	108C000-100FFFF		ROM'82	16K (SPECCY.ROM)
+-- 1 0000_1001 000x_xxxx xxxx_xxxx	1090000-1091FFF		divMMC	 8K (SPECCY.ROM)
+-- 1 0000_1001 001x_xxxx xxxx_xxxx	1092000-1093FFF		test128	 8K (SPECCY.ROM)
 
 entity speccy is
 port (
@@ -108,9 +93,9 @@ port (
 	CLK_48MHZ	: in std_logic;
 	
 	-- SDRAM (32MB 16x16bit)
-	SDRAM_D		: inout std_logic_vector(15 downto 0); -- sdram data bus
-	SDRAM_A		: out std_logic_vector(12 downto 0); -- sdram address bus
-	SDRAM_BA	: out std_logic_vector(1 downto 0); -- sdram bank address
+	SDRAM_D		: inout std_logic_vector(15 downto 0); -- sdram data bus  
+	SDRAM_A		: out std_logic_vector(12 downto 0); -- sdram address bus 
+	SDRAM_BA	: out std_logic_vector(1 downto 0); -- sdram bank address 
 	SDRAM_CLK	: out std_logic; -- sdram clock
 	SDRAM_DQML	: out std_logic; -- sdram low data byte mask
 	SDRAM_DQMH	: out std_logic; -- sdram high data byte mask
@@ -121,10 +106,10 @@ port (
 	SDRAM_CS_N	: out std_logic; -- sdram chip enable
 	
 	-- SPI FLASH (M25P16)
-	DATA0		: in std_logic; 
-	NCSO		: out std_logic; 
-	DCLK		: out std_logic; 
-	ASDO		: out std_logic; 
+	DATA0		: in std_logic;  -- Flash MOSI
+	NCSO		: out std_logic; -- Flash CS
+	DCLK		: out std_logic; -- Flash SCLK
+	ASDO		: out std_logic; -- Flash MISO
 
 	-- VGA
 	VGA_R		: out std_logic_vector(4 downto 0);
@@ -134,18 +119,18 @@ port (
 	VGA_VS		: out std_logic;
 
 	-- External I/O
-	DAC_OUT_L	: out std_logic; 
-	DAC_OUT_R	: out std_logic; 
-	KEYS		: in std_logic_vector(3 downto 0);
-	BUZZER	: out std_logic;
+	DAC_OUT_L	: out std_logic; -- Audio out L
+	DAC_OUT_R	: out std_logic; -- Audio out R
+	KEYS		: in std_logic_vector(3 downto 0); -- Physical push buttons
+	BUZZER		: out std_logic; -- Pieso buzzer
 	
 	-- UART
---	UART_RXD	: inout std_logic;
---	UART_TXD : inout std_logic;
+	UART_RXD	: inout std_logic;
+	UART_TXD 	: inout std_logic;
 	
 	-- PS/2 Keyboard
-	PS2_CLK	: inout std_logic;
-	PS2_DAT  : inout std_logic;
+	PS2_CLK		: inout std_logic;
+	PS2_DAT  	: inout std_logic;
 	
 	-- SD/MMC Card
 	SD_SO		: in std_logic;
@@ -177,28 +162,24 @@ signal cpu0_mem_wr	: std_logic;
 signal cpu0_mem_rd	: std_logic;
 signal cpu0_nmi_n	: std_logic;
 -- Memory
-signal rom_do_bus	: std_logic_vector(7 downto 0);
 signal ram_a_bus	: std_logic_vector(11 downto 0);
+signal sdr_a_bus	: std_logic_vector(24 downto 0);
+signal sdr_di_bus	: std_logic_vector(7 downto 0);
+signal sdr_do_bus	: std_logic_vector(7 downto 0);
+signal rom_do_bus	: std_logic_vector(7 downto 0);
+signal sdr_wr		: std_logic;
+signal sdr_rd		: std_logic;
+signal sdr_rfsh		: std_logic;
 -- Port
 signal port_xxfe_reg	: std_logic_vector(7 downto 0) := "00000000";
 signal port_1ffd_reg	: std_logic_vector(7 downto 0);
 signal port_7ffd_reg	: std_logic_vector(7 downto 0);
 signal port_dffd_reg	: std_logic_vector(7 downto 0);
-signal port_0000_reg	: std_logic_vector(7 downto 0) := "00000000";
-signal port_0001_reg	: std_logic_vector(7 downto 0) := "00000000";
+------
 -- PS/2 Keyboard
 signal kb_do_bus	: std_logic_vector(4 downto 0);
 signal kb_f_bus		: std_logic_vector(12 downto 1);
 signal kb_joy_bus	: std_logic_vector(4 downto 0);
---signal kb_num		: std_logic := '1';
--- PS/2 Mouse
--- signal ms_but_bus       : std_logic_vector(7 downto 0);
--- signal ms_present       : std_logic;
--- signal ms_left          : std_logic;
--- signal ms_x_bus         : std_logic_vector(7 downto 0);
--- signal ms_y_bus         : std_logic_vector(7 downto 0);
--- signal ms_clk_out       : std_logic;
--- signal ms_buf_out       : std_logic;
 -- Video
 signal vid_a_bus	: std_logic_vector(12 downto 0);
 signal vid_di_bus	: std_logic_vector(7 downto 0);
@@ -208,9 +189,6 @@ signal vid_hsync	: std_logic;
 signal vid_vsync	: std_logic;
 signal vid_hcnt		: std_logic_vector(8 downto 0);
 signal vid_int		: std_logic;
---signal vid_border	: std_logic;
---signal vid_attr	: std_logic_vector(7 downto 0);
---signal vid_blank	: std_logic;
 signal rgb		: std_logic_vector(5 downto 0);
 
 signal vga_hsync	: std_logic;
@@ -232,23 +210,6 @@ signal spi_wr		: std_logic;
 signal spi_cs_n		: std_logic;
 signal spi_do_bus	: std_logic_vector(7 downto 0);
 signal spi_busy		: std_logic;
--- PCF8583
--- signal rtc_do_bus       : std_logic_vector(7 downto 0);
--- signal rtc_wr           : std_logic;
--- MC146818A
---signal mc146818_wr      : std_logic;
---signal mc146818_a_bus   : std_logic_vector(5 downto 0);
---signal mc146818_do_bus  : std_logic_vector(7 downto 0);
-signal port_bff7        : std_logic;
-signal port_eff7_reg    : std_logic_vector(7 downto 0);
--- TDA1543
---signal dac_data         : std_logic;
---signal dac_ws           : std_logic;
--- SDRAM
-signal sdr_do_bus	: std_logic_vector(7 downto 0);
-signal sdr_wr		: std_logic;
-signal sdr_rd		: std_logic;
-signal sdr_rfsh		: std_logic;
 -- TurboSound
 signal ssg_sel		: std_logic;
 signal ssg_cn0_bus	: std_logic_vector(7 downto 0);
@@ -259,10 +220,10 @@ signal ssg_cn1_bus	: std_logic_vector(7 downto 0);
 signal ssg_cn1_a	: std_logic_vector(7 downto 0);
 signal ssg_cn1_b	: std_logic_vector(7 downto 0);
 signal ssg_cn1_c	: std_logic_vector(7 downto 0);
-signal audio_l		: std_logic_vector(15 downto 0);
-signal audio_r		: std_logic_vector(15 downto 0);
-signal dac_s_l		: std_logic_vector(15 downto 0);
-signal dac_s_r		: std_logic_vector(15 downto 0);
+signal audio_l		: std_logic_vector(11 downto 0);
+signal audio_r		: std_logic_vector(11 downto 0);
+signal dac_s_l		: std_logic_vector(11 downto 0);
+signal dac_s_r		: std_logic_vector(11 downto 0);
 signal sound		: std_logic_vector(7 downto 0);
 -- Soundrive
 signal covox_a		: std_logic_vector(7 downto 0);
@@ -271,39 +232,11 @@ signal covox_c		: std_logic_vector(7 downto 0);
 signal covox_d		: std_logic_vector(7 downto 0);
 -- beeper
 signal beeper		: std_logic;
-type  array_3x24   is array (0 to 2) of unsigned( 23 downto 0);
-type  weight_array is array (0 to 3, 0 to 1) of array_3x24;
-signal weightAY_L       : array_3x24;
-signal weightAY_R       : array_3x24;
--- A B C (L)  A B C (R)
-constant weigthAyTable : weight_array := (
-    ((x"000000",x"000000",x"000000"),(x"000000",x"000000",x"000000")),
-    ((x"00007e",x"000029",x"000058"),(x"000029",x"00007e",x"000058")),
-    ((x"00007e",x"000058",x"000029"),(x"000029",x"000058",x"00007e")),
-    ((x"000055",x"000055",x"000055"),(x"000055",x"000055",x"000055"))
-);
--- General Sound
---signal gs_a		: std_logic_vector(13 downto 0) := "00000000000000";
---signal gs_b		: std_logic_vector(13 downto 0) := "00000000000000";
---signal gs_c		: std_logic_vector(13 downto 0) := "00000000000000";
---signal gs_d		: std_logic_vector(13 downto 0) := "00000000000000";
---signal gs_do_bus	: std_logic_vector(7 downto 0);
---signal gs_mdo		: std_logic_vector(7 downto 0);
---signal gs_ma		: std_logic_vector(18 downto 0);
---signal gs_mwe_n		: std_logic := '1';
--- UART
---signal uart_do_bus	: std_logic_vector(7 downto 0);
---signal uart_wr		: std_logic;
---signal uart_rd		: std_logic;
---signal uart_tx_busy	: std_logic;
---signal uart_rx_avail	: std_logic;
---signal uart_rx_error	: std_logic;
 -- CLOCK
 signal clk_bus		: std_logic;
 signal clk_sdr		: std_logic;
-signal clk_interface	: std_logic;
-signal clk_codec	: std_logic;
-signal clk_hdmi		: std_logic;
+signal clk7			: std_logic;
+signal clk14		: std_logic;
 ------------------------------------
 signal ena_14mhz	: std_logic;
 signal ena_7mhz		: std_logic;
@@ -316,21 +249,11 @@ signal reset		: std_logic;
 signal areset		: std_logic;
 signal key_reset	: std_logic;
 signal locked		: std_logic;
-signal loader_act	: std_logic := '1';
 signal dos_act		: std_logic := '1';
 signal cpuclk		: std_logic;
 signal selector		: std_logic_vector(4 downto 0);
 signal key_f		: std_logic_vector(12 downto 1);
---signal key		: std_logic_vector(12 downto 1) := "000100000100"; -- F9=14.0, F3=7.0
-signal key		: std_logic_vector(12 downto 1) := "000000000001"; -- F1=3.5, F2=7.0, F3=14
--- CNTR
---signal cntr_rgb		: std_logic_vector(5 downto 0);
---signal cntr_hs		: std_logic;
---signal cntr_vs		: std_logic;
---signal cntr_rd		: std_logic;
---signal cntr_io_flag	: std_logic;
---signal cntr_addr_reg	: std_logic_vector(15 downto 0);
---signal cntr_data_reg	: std_logic_vector(7 downto 0);
+signal key		: std_logic_vector(12 downto 1) := "000000000001"; -- F1=3.5, F2=7.0, F3=14, default to 3.5
 -- divmmc
 signal divmmc_do	: std_logic_vector(7 downto 0);
 signal divmmc_amap	: std_logic;
@@ -346,8 +269,29 @@ signal VideoB		: std_logic_vector(1 downto 0);
 signal Hsync		: std_logic;
 signal Vsync		: std_logic;
 signal Sblank		: std_logic;
-signal clk7		: std_logic;
-signal clk14		: std_logic;
+signal VideoR_S		: std_logic_vector(1 downto 0);
+signal VideoG_S		: std_logic_vector(1 downto 0);
+signal VideoB_S		: std_logic_vector(1 downto 0);
+-- Loader
+signal loader_host_reset : std_logic;
+signal loader_ps2_clk : std_logic;
+signal loader_ps2_dat : std_logic;
+signal loader_uart_rxd : std_logic;
+signal loader_uart_txd : std_logic;
+-- Host ps/2
+signal host_ps2_clk : std_logic;
+signal host_ps2_dat : std_logic;
+-- Host SD card
+signal host_sd_clk	: std_logic;
+signal host_sd_cs	: std_logic;
+signal host_sd_mosi : std_logic;
+signal host_sd_miso : std_logic;
+-- Host memory
+signal host_mem_a_bus	: std_logic_vector(24 downto 0);
+signal host_mem_di_bus	: std_logic_vector(7 downto 0);
+signal host_mem_wr		: std_logic;
+signal host_mem_rd		: std_logic;
+signal host_mem_rfsh	: std_logic;
 
 begin
 
@@ -424,7 +368,7 @@ port map (
 	wren_a		=> vid_wr,
 	wren_b		=> '0');
 
--- Keyboard
+-- Keyboard / disabled temporary
 U4: entity work.keyboard
 port map(
 	CLK		=> clk_bus,
@@ -437,21 +381,6 @@ port map(
 	PS2_CLK => PS2_CLK,
 	PS2_DAT => PS2_DAT
 );
-
--- ROM 1K
-U6: entity work.altram0
-port map (
-	clock_a		=> clk_bus,
-	clock_b		=> clk_bus,
---	address_a	=> cpu0_a_bus(9 downto 0),
-	address_a	=> cpu0_a_bus(12 downto 0),
-	address_b	=> "0000000000000",
-	data_a	 	=> cpu0_do_bus,
-	data_b	 	=> "00000000",
-	q_a	 	=> rom_do_bus,
-	q_b	 	=> open,
-	wren_a	 	=> '0',
-	wren_b	 	=> '0');
 	
 -- Z-Controller
 U7: entity work.zcontroller
@@ -510,8 +439,8 @@ port map (
 U11: entity work.sdram
 port map (
 	CLK		=> clk_sdr,
-	A		=> ram_a_bus & cpu0_a_bus(12 downto 0),
-	DI		=> cpu0_do_bus,
+	A		=> sdr_a_bus,
+	DI		=> sdr_di_bus,
 	DO		=> sdr_do_bus,
 	WR		=> sdr_wr,
 	RD		=> sdr_rd,
@@ -544,24 +473,6 @@ port map (
 	OUTC		=> covox_c,
 	OUTD		=> covox_d);
 
--- UART
---U16: entity work.uart
---generic map (
---	-- divisor = 28MHz / 115200 Baud = 243
---	divisor		=> 243)
---port map (
---	CLK		=> clk_bus,
---	RESET		=> reset,
---	WR		=> uart_wr,
---	RD		=> uart_rd,
---	DI		=> cpu0_do_bus,
---	DO		=> uart_do_bus,
---	TXBUSY		=> uart_tx_busy,
---	RXAVAIL		=> uart_rx_avail,
---	RXERROR		=> uart_rx_error,
---	RXD		=> UART_TXD,
---	TXD		=> UART_RXD);
-
 -- divmmc interface
 U18: entity work.divmmc
 port map (
@@ -583,109 +494,89 @@ port map (
 	MOSI		=> divmmc_mosi,
 	MISO		=> SD_SO);
 
--- Delta-Sigma
+-- Delta-Sigma L
 U19: entity work.dac
 port map (
     CLK   		=> clk_sdr,
     RESET 		=> areset,
     DAC_DATA		=> dac_s_l,
-    DAC_OUT   		=> dac_out_l);
+    DAC_OUT   		=> DAC_OUT_L);
 
--- Delta-Sigma
+-- Delta-Sigma R
 U20: entity work.dac
 port map (
     CLK   		=> clk_sdr,
     RESET 		=> areset,
     DAC_DATA		=> dac_s_r,
-    DAC_OUT   		=> dac_out_r);
+    DAC_OUT   		=> DAC_OUT_R);
 
--- SoundMixer	 
-U21: entity work.SoundMixer
-port map (
-	CLK => clk_bus,
-	
-	I_AUDIO1_AY_A => ssg_cn0_a,
-	I_AUDIO1_AY_B => ssg_cn0_b,
-	I_AUDIO1_AY_C => ssg_cn0_c,
-	
-	I_AUDIO2_AY_A => ssg_cn1_a,
-	I_AUDIO2_AY_B => ssg_cn1_b,
-	I_AUDIO2_AY_C => ssg_cn1_c,
-	
-	WEIGHT_AUDIO1_AY_A => weightAY_L(0),--AY1 - WEIGHT
-	WEIGHT_AUDIO1_AY_B => weightAY_L(1),-- sum should be <=1
-	WEIGHT_AUDIO1_AY_C => weightAY_L(2),
-				 
-	WEIGHT_AUDIO2_AY_A => weightAY_L(0),--AY2 - WEIGHT
-	WEIGHT_AUDIO2_AY_B => weightAY_L(1),-- sum should be <=1
-	WEIGHT_AUDIO2_AY_C => weightAY_L(2),
-	
-	I_AUDIO_AUX_1  => covox_a,--COVOX C1
-   I_AUDIO_AUX_2  => covox_b,--COVOX C2
-   I_AUDIO_AUX_3  => x"0000",
-	
-	WEIGHT_AUDIO_AUX_1 => x"000100",--COVOX C1
-   WEIGHT_AUDIO_AUX_2 => x"000100",--COVOX C2
-   WEIGHT_AUDIO_AUX_3 => x"000001",--SID -- in data in 16bit format
-	
-	I_AUDIO_BEEPER  => beeper,
-	I_AUDIO_TAPE    => '0',
-	
-	WEIGHT_AUDIO_BEEPER => x"000050",
-   WEIGHT_AUDIO_TAPE   => x"000020",
-	
-	I_AY1_ENABLED  => '1',
-   I_AY2_ENABLED  => '1',
-   I_AUX1_ENABLED => '1',
-   I_AUX2_ENABLED => '1',
-   I_AUX3_ENABLED => '0',
-   O_AUDIO        => audio_l
-);
+-- Loader
+U21: entity work.loader 
+	generic map (
+		mem_a_offset => 17317888, -- TR-DOS started from 0x1084000
+		--loader_filesize => 81920,  -- SPECCY.ROM filesize
+		loader_filesize => 16384,
+		use_osd => true
+	)
+	port map (
+		clk => clk_bus,
+		clk_low => clk_bus,
+		reset => (areset or locked),
 
-U22: entity work.SoundMixer
-port map (
-	CLK => clk_bus,
-	
-	I_AUDIO1_AY_A => ssg_cn0_a,
-	I_AUDIO1_AY_B => ssg_cn0_b,
-	I_AUDIO1_AY_C => ssg_cn0_c,
-	
-	I_AUDIO2_AY_A => ssg_cn1_a,
-	I_AUDIO2_AY_B => ssg_cn1_b,
-	I_AUDIO2_AY_C => ssg_cn1_c,
-	
-	WEIGHT_AUDIO1_AY_A => weightAY_R(0),--AY1 - WEIGHT
-	WEIGHT_AUDIO1_AY_B => weightAY_R(1),-- sum should be <=1
-	WEIGHT_AUDIO1_AY_C => weightAY_R(2),
-				 
-	WEIGHT_AUDIO2_AY_A => weightAY_R(0),--AY2 - WEIGHT
-	WEIGHT_AUDIO2_AY_B => weightAY_R(1),-- sum should be <=1
-	WEIGHT_AUDIO2_AY_C => weightAY_R(2),
-	
-	I_AUDIO_AUX_1  => covox_c,--COVOX C3
-   I_AUDIO_AUX_2  => covox_d,--COVOX C4
-   I_AUDIO_AUX_3  => x"0000",
-	
-	WEIGHT_AUDIO_AUX_1 => x"000100",--COVOX C1
-   WEIGHT_AUDIO_AUX_2 => x"000100",--COVOX C2
-   WEIGHT_AUDIO_AUX_3 => x"000001",--SID -- in data in 16bit format
-	
-	I_AUDIO_BEEPER  => beeper,
-	I_AUDIO_TAPE    => '0',
-	
-	WEIGHT_AUDIO_BEEPER => x"000050",
-   WEIGHT_AUDIO_TAPE   => x"000020",
-	
-	I_AY1_ENABLED  => '1',
-   I_AY2_ENABLED  => '1',
-   I_AUX1_ENABLED => '1',
-   I_AUX2_ENABLED => '1',
-   I_AUX3_ENABLED => '0',
-   O_AUDIO        => audio_r
-);
-	 
-	 
-	 
+		-- physical connections
+		sd_clk => SD_CLK,
+		sd_cs => SD_CS_n,
+		sd_mosi => SD_SI,
+		sd_miso => SD_SO,
+		
+		uart_rxd => UART_RXD,
+		uart_txd => UART_TXD,
+		
+--		ps2_clk => PS2_CLK,
+--		ps2_dat => PS2_DAT,
+		
+		vga_r(7 downto 3) => VGA_R,
+		vga_g(7 downto 2) => VGA_G,
+		vga_b(7 downto 3) => VGA_B,
+		vga_hs => VGA_HS,
+		vga_vs => VGA_VS,
+
+		-- ram controller connections
+		mem_di_bus => sdr_di_bus,
+		mem_a_bus => sdr_a_bus,
+		mem_wr => sdr_wr,
+		mem_rd => sdr_rd,
+		mem_rfsh => sdr_rfsh,
+
+		-- loader to host signals
+		host_sd_clk => host_sd_clk,
+		host_sd_cs => host_sd_cs,
+		host_sd_mosi => host_sd_mosi,
+		host_sd_miso => host_sd_miso,
+
+		host_vga_r(7 downto 6) => VideoR_S,
+		host_vga_g(7 downto 6) => VideoG_S,
+		host_vga_b(7 downto 6) => VideoB_S,
+		host_vga_hs => HSync,
+		host_vga_vs => VSync,
+
+		host_mem_di_bus => host_mem_di_bus,
+		host_mem_a_bus => host_mem_a_bus,
+		host_mem_wr => host_mem_wr,
+		host_mem_rd => host_mem_rd,
+		host_mem_rfsh => host_mem_rfsh,
+
+		-- loader output signals
+		host_reset => loader_host_reset
+	);
+
+UTESTROM: entity work.testrom
+	port map (
+		address => cpu0_a_bus(10 downto 0),
+		clock => clk_bus,
+		q => rom_do_bus
+	);
+
 -------------------------------------------------------------------------------
 -- Формирование глобальных сигналов
 process (clk_bus)
@@ -695,8 +586,10 @@ begin
 	end if;
 end process;
 
+-- permanent connections
 SDRAM_CKE <= '1'; -- pullup
 SDRAM_CS_N <= '0'; -- pulldown
+BUZZER <= '1'; -- nc / high
 
 ena_14mhz <= ena_cnt(0);
 ena_7mhz <= ena_cnt(1) and ena_cnt(0);
@@ -704,19 +597,17 @@ ena_3_5mhz <= ena_cnt(2) and ena_cnt(1) and ena_cnt(0);
 ena_1_75mhz <= ena_cnt(3) and ena_cnt(2) and ena_cnt(1) and ena_cnt(0);
 ena_0_4375mhz <= ena_cnt(5) and ena_cnt(4) and ena_cnt(3) and ena_cnt(2) and ena_cnt(1) and ena_cnt(0);
 
-areset <= not KEYS(3);					-- глобальный сброс
-reset <= areset or key_reset or not locked;		-- горячий сброс
+areset <= not KEYS(3);												-- глобальный сброс (S4 button)
+reset <= areset 
+	--or not KEYS(2) 
+	or not KEYS(2)
+	or loader_host_reset
+	or key_reset 
+	or not locked;      	-- горячий сброс (S3 button or reset by keyboard "Scroll Lock" button)
 
-cpu0_reset_n <= not(reset) and not(kb_f_bus(4));	-- CPU сброс
-cpu0_inta_n <= cpu0_iorq_n or cpu0_m1_n;		-- INTA
-cpu0_nmi_n <= not kb_f_bus(5);				-- NMI
-
--------------------------------------------------------------------------------
--- SDRAM
---sdr_wr <= '1' when cpu0_mreq_n = '0' and cpu0_wr_n = '0' and ((mux = "1001" and (divmmc_e3reg(1 downto 0) /= "11" and divmmc_e3reg(6) /= '1')) or mux(3 downto 2) = "11" or mux(3 downto 2) = "01" or mux(3 downto 1) = "101" or mux(3 downto 1) = "001") else '0';
-sdr_wr <= '1' when cpu0_mreq_n = '0' and cpu0_wr_n = '0' and (mux = "1001" or mux(3 downto 2) = "11" or mux(3 downto 2) = "01" or mux(3 downto 1) = "101" or mux(3 downto 1) = "001") else '0';
-sdr_rd <= not (cpu0_mreq_n or cpu0_rd_n);
-sdr_rfsh <= not cpu0_rfsh_n;
+cpu0_reset_n <= not(reset) and not(kb_f_bus(4));					-- CPU сброс 
+cpu0_inta_n <= cpu0_iorq_n or cpu0_m1_n;							-- INTA
+cpu0_nmi_n <= not kb_f_bus(5);										-- NMI (Keyboard F5)
 
 -------------------------------------------------------------------------------
 -- Делитель
@@ -728,47 +619,49 @@ begin
 		when "001" => cpu0_ena <= ena_3_5mhz;
 		when "010" => cpu0_ena <= ena_7mhz;
 		when "100" => cpu0_ena <= ena_14mhz;
-		when others => null;
+		when others => cpu0_ena <= ena_3_5mhz;
 	end case;
 end process;
 
 -------------------------------------------------------------------------------
--- SD					
-SD_CS_n	<= divmmc_cs_n when key_f(6) = '1' else zc_cs_n;
-SD_CLK 	<= divmmc_sclk when key_f(6) = '1' else zc_sclk;
-SD_SI 	<= divmmc_mosi when key_f(6) = '1' else zc_mosi;
+-- SDRAM host signals
+host_mem_di_bus <= cpu0_do_bus;
+host_mem_a_bus <= ram_a_bus & cpu0_a_bus(12 downto 0);
+host_mem_rfsh <= not cpu0_rfsh_n;
+host_mem_rd <= not (cpu0_mreq_n or cpu0_rd_n);
+host_mem_wr <= '1' 
+				when cpu0_mreq_n = '0' and cpu0_wr_n = '0' -- Write request from CPU
+				and (
+					mux = "1001" 				-- ESXDOS RAM 2000-3FFF
+					or mux(3 downto 2) = "11" 	-- Seg2 / Seg3 RAM 
+					or mux(3 downto 2) = "01"   -- Seg2 / Seg3 RAM
+					or mux(3 downto 1) = "101"  -- Seg 1 RAM
+					or mux(3 downto 1) = "001"  -- Seg 1 RAM 
+					) 
+				else '0';
+
+-------------------------------------------------------------------------------
+-- SD host signals
+host_sd_cs 		<= divmmc_cs_n when key_f(6)='1' else zc_cs_n;
+host_sd_clk 	<= divmmc_sclk when key_f(6)='1' else zc_sclk;
+host_sd_mosi 	<= divmmc_mosi when key_f(6)='1' else zc_mosi;
 
 -------------------------------------------------------------------------------
 -- Регистры
-process (areset, clk_bus, cpu0_a_bus, port_0000_reg, cpu0_mreq_n, cpu0_wr_n, cpu0_do_bus, port_0001_reg)
-begin
-	if areset = '1' then
-		port_0000_reg <= (others => '0');	-- маска по AND порта #DFFD
-		port_0001_reg <= (others => '0');	-- bit2 = (0:Loader ON, 1:Loader OFF); bit1 = (0:SRAM<->CPU0, 1:SRAM<->GS); bit0 = (0:M25P16, 1:ENC424J600)
-		loader_act <= '1';
-	elsif clk_bus'event and clk_bus = '1' then
-		if cpu0_iorq_n = '0' and cpu0_wr_n = '0' and cpu0_a_bus(15 downto 0) = X"0000" then port_0000_reg <= cpu0_do_bus; end if;
-		if cpu0_iorq_n = '0' and cpu0_wr_n = '0' and cpu0_a_bus(15 downto 0) = X"0001" then port_0001_reg <= cpu0_do_bus; end if;
-		if cpu0_m1_n = '0' and cpu0_mreq_n = '0' and cpu0_a_bus = X"0000" and port_0001_reg(2) = '1' then loader_act <= '0'; end if;
-	end if;
-end process;
 
 process (reset, clk_bus, cpu0_a_bus, dos_act, port_1ffd_reg, port_7ffd_reg, port_dffd_reg, cpu0_mreq_n, cpu0_wr_n, cpu0_do_bus)
 begin
 	if reset = '1' then
-		port_eff7_reg <= (others => '0');
 		port_1ffd_reg <= (others => '0');
 		port_7ffd_reg <= (others => '0');
 		port_dffd_reg <= (others => '0');
 		dos_act <= '1';
 	elsif clk_bus'event and clk_bus = '1' then
 		if cpu0_iorq_n = '0' and cpu0_wr_n = '0' and cpu0_a_bus(7 downto 0) = X"FE" then port_xxfe_reg <= cpu0_do_bus; end if;
-		if cpu0_iorq_n = '0' and cpu0_wr_n = '0' and cpu0_a_bus = X"EFF7" then port_eff7_reg <= cpu0_do_bus; end if;
 		if cpu0_iorq_n = '0' and cpu0_wr_n = '0' and cpu0_a_bus = X"1FFD" then port_1ffd_reg <= cpu0_do_bus; end if;
 		if cpu0_iorq_n = '0' and cpu0_wr_n = '0' and cpu0_a_bus = X"7FFD" and port_7ffd_reg(5) = '0' then port_7ffd_reg <= cpu0_do_bus; end if;
 		if cpu0_iorq_n = '0' and cpu0_wr_n = '0' and cpu0_a_bus = X"DFFD" and port_7ffd_reg(5) = '0' then port_dffd_reg <= cpu0_do_bus; end if;
-		--if cpu0_iorq_n = '0' and cpu0_wr_n = '0' and cpu0_a_bus = X"DFF7" and port_eff7_reg(7) = '1' then mc146818_a_bus <= cpu0_do_bus(5 downto 0); end if;
-		if cpu0_m1_n = '0' and cpu0_mreq_n = '0' and cpu0_a_bus(15 downto 8) = X"3D" and port_7ffd_reg(4) = '1' then dos_act <= '1';
+		if cpu0_m1_n = '0' and cpu0_mreq_n = '0' and cpu0_a_bus(15 downto 8) = X"3D" and port_7ffd_reg(4) = '1' then dos_act <= '1'; -- номер страницы ПЗУ. 0 - BASIC128, 1 - BASIC48.
 		elsif cpu0_m1_n = '0' and cpu0_mreq_n = '0' and cpu0_a_bus(15 downto 14) /= "00" then dos_act <= '0'; end if;
 	end if;
 end process;
@@ -777,100 +670,72 @@ end process;
 -- Селектор
 mux <= ((divmmc_amap or divmmc_e3reg(7)) and key_f(6)) & cpu0_a_bus(15 downto 13);
 
-process (mux, port_7ffd_reg, port_dffd_reg, port_0000_reg, ram_a_bus, cpu0_a_bus, dos_act, port_1ffd_reg, divmmc_e3reg, key_f)
+process (mux, port_7ffd_reg, port_dffd_reg, ram_a_bus, cpu0_a_bus, dos_act, port_1ffd_reg, divmmc_e3reg, key_f)
 begin
 	case mux is
---		when "1000" => ram_a_bus <= "10000" & not(divmmc_e3reg(6)) & "00" & not(divmmc_e3reg(6)) & '0' & divmmc_e3reg(6) & divmmc_e3reg(6);	-- ESXDOS ROM 0000-1FFF
 		when "0000" => ram_a_bus <= "100001000" & ((not(dos_act) and not(port_1ffd_reg(1))) or key_f(6)) & (port_7ffd_reg(4) and not(port_1ffd_reg(1))) & '0';	-- Seg0 ROM 0000-1FFF
 		when "0001" => ram_a_bus <= "100001000" & ((not(dos_act) and not(port_1ffd_reg(1))) or key_f(6)) & (port_7ffd_reg(4) and not(port_1ffd_reg(1))) & '1';	-- Seg0 ROM 2000-3FFF
-		when "1000" => ram_a_bus <= "100001001000";	-- ESXDOS ROM 0000-1FFF
+		when "1000" => ram_a_bus <= "100001001000";							-- ESXDOS ROM 0000-1FFF
 		when "1001" => ram_a_bus <= "100000" & divmmc_e3reg(5 downto 0);	-- ESXDOS RAM 2000-3FFF
 		when "0010"|"1010" => ram_a_bus <= "000000001010";	-- Seg1 RAM 4000-5FFF
 		when "0011"|"1011" => ram_a_bus <= "000000001011";	-- Seg1 RAM 6000-7FFF
 		when "0100"|"1100" => ram_a_bus <= "000000000100";	-- Seg2 RAM 8000-9FFF
 		when "0101"|"1101" => ram_a_bus <= "000000000101";	-- Seg2 RAM A000-BFFF
-		when "0110"|"1110" => ram_a_bus <= (port_dffd_reg and port_0000_reg) & port_7ffd_reg(2 downto 0) & '0';	-- Seg3 RAM C000-DFFF
-		when "0111"|"1111" => ram_a_bus <= (port_dffd_reg and port_0000_reg) & port_7ffd_reg(2 downto 0) & '1';	-- Seg3 RAM E000-FFFF
+		when "0110"|"1110" => ram_a_bus <= "00000000" & port_7ffd_reg(2 downto 0) & '0';	-- Seg3 RAM C000-DFFF
+		when "0111"|"1111" => ram_a_bus <= "00000000" & port_7ffd_reg(2 downto 0) & '1';	-- Seg3 RAM E000-FFFF
 		when others => null;
 	end case;
 end process;
 
 -------------------------------------------------------------------------------
 -- Flash W25Q32 / SD
-
-process (port_0001_reg, spi_si, spi_so, spi_clk, spi_cs_n, DATA0)
-begin
-		-- SD
-        if port_0001_reg(0) = '1' then
-                NCSO <= '1';
-                spi_so <= 'X';
-        -- w25q32
-        else
-                NCSO <= spi_cs_n;
-                ASDO <= spi_si;
-				DCLK <= spi_clk;
-                spi_so <= DATA0;
-        end if;
-end process;
+--NCSO <= spi_cs_n;
+--ASDO <= spi_si;
+--DCLK <= spi_clk;
+--spi_so <= DATA0;
 
 -------------------------------------------------------------------------------
 -- Audio
-process( clk_bus )
-begin
-	if clk_bus'event and clk_bus = '1' then
-		weightAY_L <= weigthAyTable(1,0);
-		weightAY_R <= weigthAyTable(1,1);
-	end if;
-end process;
-
-beeper <= port_xxfe_reg(4) when loader_act = '0' else '0';
+beeper <= port_xxfe_reg(4);
 
 -- 12bit Delta-Sigma DAC
---audio_l <= ("00000" & port_xxfe_reg(4) & "000000") + 
---			  ("0000" & ssg_cn0_a) + 
---			  ("0000" & ssg_cn0_b) + 
---			  ("0000" & ssg_cn1_a) + 
---			  ("0000" & ssg_cn1_b) + 
---			  ("0000" & covox_a) + 
---			  ("0000" & covox_b);
+audio_l <= 	  ("0000" & beeper & "0000000") + 
+			  ("0000" & ssg_cn0_a) + 
+			  ("0000" & ssg_cn0_b) + 
+			  ("0000" & ssg_cn1_a) + 
+			  ("0000" & ssg_cn1_b) + 
+			  ("0000" & covox_a) + 
+			  ("0000" & covox_b);
 			  
---audio_r <= ("00000" & port_xxfe_reg(4) & "000000") + 
---			  ("0000" & ssg_cn0_c) + 
---			  ("0000" & ssg_cn0_b) + 
---			  ("0000" & ssg_cn1_c) + 
---			  ("0000" & ssg_cn1_b) + 
---			  ("0000" & covox_c) + 
---			  ("0000" & covox_d);
+audio_r <=    ("0000" & beeper & "0000000") + 
+			  ("0000" & ssg_cn0_c) + 
+			  ("0000" & ssg_cn0_b) + 
+			  ("0000" & ssg_cn1_c) + 
+			  ("0000" & ssg_cn1_b) + 
+			  ("0000" & covox_c) + 
+			  ("0000" & covox_d);
 
 -- Convert signed audio data (range 127 to -128) to simple unsigned value.
---dac_s_l <= std_logic_vector(unsigned(audio_l + 2048));
---dac_s_r <= std_logic_vector(unsigned(audio_r + 2048));
-dac_s_l <= audio_l;
-dac_s_r <= audio_r;
-
--- beeper
-BUZZER <= '1';--port_xxfe_reg(4);
+dac_s_l <= std_logic_vector(unsigned(audio_l + 2048));
+dac_s_r <= std_logic_vector(unsigned(audio_r + 2048));
 
 -------------------------------------------------------------------------------
 -- Port I/O
---rtc_wr          <= '1' when (cpu0_a_bus(7 downto 5) = "100" and cpu0_a_bus(3 downto 0) = "1100" and cpu0_wr_n = '0' and cpu0_iorq_n = '0') else '0'; -- Port xx8C/xx9C[xxxxxxxx_100n1100]
---mc146818_wr     <= '1' when (port_bff7 = '1' and cpu0_wr_n = '0') else '0';
-port_bff7       <= '1' when (cpu0_iorq_n = '0' and cpu0_a_bus = X"BFF7" and cpu0_m1_n = '1' and port_eff7_reg(7) = '1') else '0';
-spi_wr          <= '1' when (cpu0_iorq_n = '0' and cpu0_wr_n = '0' and cpu0_a_bus(7 downto 1) = "0000001") else '0';
---uart_wr       <= '1' when (cpu0_iorq_n = '0' and cpu0_wr_n = '0' and cpu0_a_bus(7 downto 0) = X"BC") else '0';     -- Port xxBC[xxxxxxxx_10111100]
---uart_rd       <= '1' when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus(7 downto 0) = X"BC") else '0';     -- Port xxBC[xxxxxxxx_10111100]
---ms_left       <= not(ms_left) when (ms_but_bus(1)'event and ms_but_bus(1) = '1' and ms_but_bus(0) = '1');
-zc_wr           <= '1' when (cpu0_iorq_n = '0' and cpu0_wr_n = '0' and cpu0_a_bus(7 downto 6) = "01" and cpu0_a_bus(4 downto 0) = "10111") else '0';
-zc_rd           <= '1' when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus(7 downto 6) = "01" and cpu0_a_bus(4 downto 0) = "10111") else '0';
+--spi_wr      <= '1' when (cpu0_iorq_n = '0' and cpu0_wr_n = '0' and cpu0_a_bus(7 downto 1) = "0000001") else '0';
+zc_wr       <= '1' when (cpu0_iorq_n = '0' and cpu0_wr_n = '0' and cpu0_a_bus(7 downto 6) = "01" and cpu0_a_bus(4 downto 0) = "10111") else '0';
+zc_rd       <= '1' when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus(7 downto 6) = "01" and cpu0_a_bus(4 downto 0) = "10111") else '0';
 
 
 -------------------------------------------------------------------------------
 -- Функциональные клавиши Fx
 
 -- F1/F2/F3 = 3.5/7.0/14MHz, F4 = CPU RESET, F5 = NMI, F6 = divMMC, F7 = рамка, F8 = перефирийный контроллер, F11 = soundrive, F12 = видео режим 0: Spectrum; 1: Pentagon;
-process (clk_bus, key, kb_f_bus, key_f)
+process (areset, clk_bus, key, kb_f_bus, key_f)
 begin
-	if (clk_bus'event and clk_bus = '1') then
+	if (areset = '1') then 
+		key_f <= (others => '0');
+		key_f(1) <= '1';			
+	elsif (clk_bus'event and clk_bus = '1') then
 
 		key <= kb_f_bus;
 		
@@ -893,61 +758,36 @@ end process;
 
 -------------------------------------------------------------------------------
 -- Шина данных CPU0
-process (selector, rom_do_bus, sdr_do_bus, spi_do_bus, spi_busy, kb_do_bus, zc_do_bus, 
+process (selector, sdr_do_bus, spi_do_bus, spi_busy, kb_do_bus, zc_do_bus, 
 			kb_joy_bus, ssg_cn0_bus, ssg_cn1_bus, divmmc_do, port_7ffd_reg, port_dffd_reg)
 begin
         case selector is
-                when "00000" => cpu0_di_bus <= rom_do_bus;
---              when "00001" => cpu0_di_bus <= SRAM_D;
+        	-- todo
+		        --when "00000" => cpu0_di_bus <= sdr_do_bus;
+		        when "00000" => cpu0_di_bus <= rom_do_bus;
                 when "00010" => cpu0_di_bus <= sdr_do_bus;
-                when "00011" => cpu0_di_bus <= spi_do_bus;
-                when "00100" => cpu0_di_bus <= spi_busy & "1111111";
---                when "00101" => cpu0_di_bus <= rtc_do_bus;
---                when "00110" => cpu0_di_bus <= mc146818_do_bus;
                 when "00111" => cpu0_di_bus <= "111" & kb_do_bus;
                 when "01000" => cpu0_di_bus <= zc_do_bus;
---              when "01001" => cpu0_di_bus <= ms_but_bus(7 downto 4) & '1' & not(ms_but_bus(2) & ms_but_bus(0) & ms_but_bus(1));
---              when "01010" => cpu0_di_bus <= ms_but_bus(7 downto 4) & '1' & not(ms_but_bus(2) & ms_but_bus(1) & ms_but_bus(0));
---              when "01011" => cpu0_di_bus <= ms_x_bus;
---              when "01100" => cpu0_di_bus <= ms_y_bus;
-                when "01101" => cpu0_di_bus <= "000" & kb_joy_bus;
                 when "01110" => cpu0_di_bus <= ssg_cn0_bus;
                 when "01111" => cpu0_di_bus <= ssg_cn1_bus;
---              when "10000" => cpu0_di_bus <= uart_tx_busy & CBUS4 & "1111" & uart_rx_error & uart_rx_avail;
---              when "10001" => cpu0_di_bus <= uart_do_bus;
---              when "10010" => cpu0_di_bus <= gs_do_bus;
                 when "10011" => cpu0_di_bus <= divmmc_do;
                 when "10100" => cpu0_di_bus <= port_7ffd_reg;
                 when "10101" => cpu0_di_bus <= port_dffd_reg;
---              when "10110" => cpu0_di_bus <= vid_attr;
                 when others  => cpu0_di_bus <= (others => '1');
         end case;
 end process;
 
-selector <= "00000" when (cpu0_mreq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus(15 downto 14) = "00" and loader_act = '1') else
---			"00001" when (cpu0_mreq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus(15) = '1' and port_0001_reg(2) = '0') else
+selector <= 
+		-- todo
+		"00000" when (cpu0_mreq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus(15 downto 14) = "00") else -- ROM
 	    "00010" when (cpu0_mreq_n = '0' and cpu0_rd_n = '0') else 				-- SDRAM
-	    "00011" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus( 7 downto 0) = X"02") else 						-- M25P16
-	    "00100" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus( 7 downto 0) = X"03") else 						-- M25P16
-	    "00101" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus( 7 downto 5) = "100" and cpu0_a_bus(3 downto 0) = "1100") else 	-- RTC
-	    "00110" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and port_bff7 = '1' and port_eff7_reg(7) = '1') else 				-- MC146818A
 	    "00111" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus( 7 downto 0) = X"FE") else 						-- Клавиатура, порт xxFE
 	    "01000" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus( 7 downto 6) = "01" and cpu0_a_bus(4 downto 0) = "10111") else 	-- Z-Controller
---			"01001" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus(15 downto 0) = X"FADF" and ms_present = '1' and ms_left = '0') else 	-- Mouse Port FADF[11111010_11011111] = <Z>1<MB><LB><RB>
---			"01010" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus(15 downto 0) = X"FADF" and ms_present = '1' and ms_left = '1') else
---			"01011" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus(15 downto 0) = X"FBDF" and ms_present = '1') else			-- Port FBDF[11111011_11011111] = <X>
---			"01100" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus(15 downto 0) = X"FFDF" and ms_present = '1') else			-- Port FFDF[11111111_11011111] = <Y>
---			"01101" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus( 7 downto 0) = X"1F" and dos_act = '0' and kb_num = '1') else 	-- Joystick, порт xx1F
-	    "01101" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus( 7 downto 0) = X"1F" and dos_act = '0') else 			-- Joystick, порт xx1F
 	    "01110" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus(15 downto 0) = X"FFFD" and ssg_sel = '0') else 			-- TurboSound
 	    "01111" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus(15 downto 0) = X"FFFD" and ssg_sel = '1') else
---			"10000" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus( 7 downto 0) = X"AC") else						-- UART
---			"10001" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus( 7 downto 0) = X"BC") else
---			"10010" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus( 7 downto 4) = "1011" and cpu0_a_bus(2 downto 0) = "011") else	-- General Sound
 	    "10011" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus( 7 downto 0) = X"EB" and key_f(6) = '1') else			-- DivMMC
 	    "10100" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus(15 downto 0) = X"7FFD") else						-- чтение порта 7FFD
 	    "10101" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus(15 downto 0) = X"DFFD") else						-- чтение порта DFFD
---			"10110" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus( 7 downto 0) = X"FF" and vid_border = '1') else			-- порт атрибутов #FF
 	    (others => '1');
 
 -------------------------------------------------------------------------------
@@ -990,12 +830,10 @@ port map (
 	CLK		=> clk7,
 	CLK_x2		=> clk14);
 
--- VGA output
+VideoR_S <= VideoR when Sblank = '1' else "00";
+VideoG_S <= VideoG when Sblank = '1' else "00";
+VideoB_S <= VideoB when Sblank = '1' else "00";
 
-VGA_R <= VideoR(1) & VideoR(0) & "000"  when Sblank = '1' else "00000";
-VGA_G <= VideoG(1) & VideoG(0) & "0000" when Sblank = '1' else "000000";
-VGA_B <= VideoB(1) & VideoB(0) & "000"  when Sblank = '1' else "00000";
-VGA_HS <= HSync;
-VGA_VS <= VSync;
-
+	
 end rtl;
+

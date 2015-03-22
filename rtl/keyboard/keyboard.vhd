@@ -19,9 +19,8 @@ port (
 	KEYF		: out std_logic_vector(12 downto 1);
 	KEYJOY		: out std_logic_vector(4 downto 0);
 	KEYRESET	: out std_logic;
---	RX			: in std_logic;
 	PS2_CLK	: inout std_logic;
-	PS2_DAT	:	inout std_logic);
+	PS2_DAT	: inout std_logic);
 end keyboard;
 
 architecture rtl of keyboard is
@@ -42,14 +41,6 @@ signal extkey: std_logic;
 
 begin
 
---	inst_rx : entity work.receiver
---	port map (
---		CLK      => CLK,
---		nRESET   => not RESET,
---		RX       => RX,
---		DATA     => keyb_data
---		);
-
 inst_rx : entity work.PS2Keyboard
 port map (
 	Clock => CLK,
@@ -59,22 +50,6 @@ port map (
 	CodeReady => scancode_ready,
 	ScanCode => scancode
 );
-
-
-	-- Output addressed row to ULA
---	row0 <= keys_buffer(0) when A(0) = '0' else (others => '1');
---	row1 <= keys_buffer(1) when A(1) = '0' else (others => '1');
---	row2 <= keys_buffer(2) when A(2) = '0' else (others => '1');
---	row3 <= keys_buffer(3) when A(3) = '0' else (others => '1');
---	row4 <= keys_buffer(4) when A(4) = '0' else (others => '1');
---	row5 <= keys_buffer(5) when A(5) = '0' else (others => '1');
---	row6 <= keys_buffer(6) when A(6) = '0' else (others => '1');
---	row7 <= keys_buffer(7) when A(7) = '0' else (others => '1');
---	KEYB <= row0 and row1 and row2 and row3 and row4 and row5 and row6 and row7;
---
---	KEYJOY 		<= keys_buffer(8);
---	KEYRESET 	<= keys_buffer(11)(2);
---	KEYF 		<= keys_buffer(11)(1) & keys_buffer(11)(0) & keys_buffer(10) & keys_buffer(9);
 
 	row0 <= keys(0) when A(0) = '0' else (others => '1');
 	row1 <= keys(1) when A(1) = '0' else (others => '1');
@@ -113,20 +88,6 @@ port map (
 			
 		elsif CLK'event and CLK = '1' then
 			case keyb_data is
-				--when X"FF" =>
-				--			  keys(0) <= (others => '1');
-				--			  keys(1) <= (others => '1');
-				--			  keys(2) <= (others => '1');
-				--			  keys(3) <= (others => '1');
-				--			  keys(4) <= (others => '1');
-				--			  keys(5) <= (others => '1');
-				--			  keys(6) <= (others => '1');
-				--			  keys(7) <= (others => '1');
-				--			  keys(8) <= (others => '0');
-				--			  keys(9) <= (others => '0');
-				--			  keys(10) <= (others => '0');
-				--			  keys(11) <= (others => '0');
-				--
 				when X"12" => keys(0)(0) <= pressrelease_n; -- Left  shift (CAPS SHIFT)
 				when X"59" => keys(0)(0) <= pressrelease_n; -- Right shift (CAPS SHIFT)
 				when X"1a" => keys(0)(1) <= pressrelease_n; -- Z

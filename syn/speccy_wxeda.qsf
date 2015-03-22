@@ -58,17 +58,15 @@ set_global_assignment -name RESERVE_DCLK_AFTER_CONFIGURATION "USE AS REGULAR IO"
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 set_global_assignment -name HDL_MESSAGE_LEVEL LEVEL2
-set_global_assignment -name TIMEQUEST_MULTICORNER_ANALYSIS ON
-set_global_assignment -name TIMEQUEST_DO_CCPP_REMOVAL ON
-set_global_assignment -name SYNTH_TIMING_DRIVEN_SYNTHESIS ON
+set_global_assignment -name TIMEQUEST_MULTICORNER_ANALYSIS OFF
+set_global_assignment -name TIMEQUEST_DO_CCPP_REMOVAL OFF
+set_global_assignment -name SYNTH_TIMING_DRIVEN_SYNTHESIS OFF
 set_global_assignment -name USE_CONFIGURATION_DEVICE OFF
 set_global_assignment -name CRC_ERROR_OPEN_DRAIN OFF
 set_global_assignment -name OUTPUT_IO_TIMING_NEAR_END_VMEAS "HALF VCCIO" -rise
 set_global_assignment -name OUTPUT_IO_TIMING_NEAR_END_VMEAS "HALF VCCIO" -fall
 set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -rise
 set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -fall
-set_global_assignment -name ENABLE_SIGNALTAP OFF
-set_global_assignment -name USE_SIGNALTAP_FILE stp1.stp
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name LL_ROOT_REGION ON -section_id "Root Region"
@@ -152,6 +150,24 @@ set_location_assignment PIN_11 -to NCSO -comment "Flash 11 / EPCS 8"
 set_location_assignment PIN_10 -to DCLK -comment "Flash 10 / EPCS 12"
 set_location_assignment PIN_7 -to ASDO -comment "Flash 7 / EPCS 6"
 set_location_assignment PIN_65 -to SDRAM_A[12]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to PS2_CLK
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to PS2_DAT
+set_global_assignment -name VHDL_FILE ../rtl/loader/loader.vhd
+set_global_assignment -name VHDL_FILE ../rtl/loader/loader_vga_master.vhd
+set_global_assignment -name VHDL_FILE ../rtl/oneshot/oneshot.vhd
+set_global_assignment -name VHDL_FILE ../rtl/loader/zpuflex/rtl/zpu_core_flex.vhd
+set_global_assignment -name VHDL_FILE ../rtl/loader/zpuflex/rtl/zpupkg.vhd
+set_global_assignment -name VHDL_FILE ../rtl/loader/loader_uart.vhd
+set_global_assignment -name VHDL_FILE ../rtl/loader/loader_spi.vhd
+set_global_assignment -name VHDL_FILE ../rtl/loader/loader_ram2.vhd
+set_global_assignment -name VHDL_FILE ../rtl/loader/loader_ram.vhd
+set_global_assignment -name VHDL_FILE ../rtl/loader/loader_ps2.vhd
+set_global_assignment -name VHDL_FILE ../rtl/loader/loader_osd_overlay.vhd
+set_global_assignment -name VHDL_FILE ../rtl/loader/loader_osd.vhd
+set_global_assignment -name VHDL_FILE ../rtl/loader/loader_int.vhd
+set_global_assignment -name VHDL_FILE ../rtl/loader/loader_firmware_rom.vhd
+set_global_assignment -name VHDL_FILE ../rtl/loader/loader_ctrl.vhd
+set_global_assignment -name VHDL_FILE ../rtl/loader/loader_charrom_rom.vhd
 set_global_assignment -name VHDL_FILE ../rtl/sound/turbosound.vhd
 set_global_assignment -name VHDL_FILE ../rtl/sound/soundrive.vhd
 set_global_assignment -name VHDL_FILE ../rtl/sound/SoundMixer.vhd
@@ -176,10 +192,8 @@ set_global_assignment -name VHDL_FILE ../rtl/t80/T80.vhd
 set_global_assignment -name VHDL_FILE ../rtl/spi/spi.vhd
 set_global_assignment -name VHDL_FILE ../rtl/sd/zcontroller.vhd
 set_global_assignment -name VHDL_FILE ../rtl/divmmc/divmmc.vhd
-set_global_assignment -name VHDL_FILE ../rtl/ram/altram2.vhd
 set_global_assignment -name VHDL_FILE ../rtl/ram/altram1.vhd
-set_global_assignment -name VHDL_FILE ../rtl/ram/altram0.vhd
 set_global_assignment -name QIP_FILE ../rtl/pll/altpll1.qip
-set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to PS2_CLK
-set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to PS2_DAT
+set_global_assignment -name EDA_SIMULATION_TOOL "<None>"
+set_global_assignment -name QIP_FILE ../rtl/rom/testrom.qip
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
