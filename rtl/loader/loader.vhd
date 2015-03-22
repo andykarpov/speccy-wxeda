@@ -27,8 +27,8 @@ entity loader is
 --		ps2_dat : inout std_logic;
 
 		vga_r : out std_logic_vector(7 downto 0);
-		vga_b : out std_logic_vector(7 downto 0);
 		vga_g : out std_logic_vector(7 downto 0);
+		vga_b : out std_logic_vector(7 downto 0);
 		vga_hs : out std_logic;
 		vga_vs : out std_logic;
 
@@ -157,7 +157,7 @@ loader_uart_rxd <= uart_rxd;
 vga_hs <= host_vga_hs when loader_act='0' or not use_osd else loader_vga_hs;
 vga_vs <= host_vga_vs when loader_act='0' or not use_osd else loader_vga_vs;
 vga_r <= host_vga_r when loader_act='0' or not use_osd else loader_vga_r;
-vga_g <= host_vga_b when loader_act='0' or not use_osd else loader_vga_g;
+vga_g <= host_vga_g when loader_act='0' or not use_osd else loader_vga_g;
 vga_b <= host_vga_b when loader_act='0' or not use_osd else loader_vga_b;
 
 -- Loader VGA master sync generator
