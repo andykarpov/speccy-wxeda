@@ -1,6 +1,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.numeric_std.ALL;
+USE ieee.std_logic_arith.all;
 
 entity loader is
 	generic(
@@ -88,6 +89,7 @@ signal loader_boot_req : std_logic := '1';
 signal loader_boot_data: std_logic_vector(7 downto 0) := (others=>'0');
 signal loader_address : integer := 0;
 signal loader_bootdone : std_logic := '0';
+signal loader_bootdone_resp : std_logic := '0';
 
 signal loader_act : std_logic := '1';
 
@@ -97,7 +99,7 @@ signal loader_dipswitches: std_logic_vector(11 downto 0);
 signal loader_host_reset_n : std_logic;
 signal loader_host_divert_sdcard : std_logic;
 signal loader_host_divert_keyboard : std_logic;
-
+signal host_reset_out : std_logic := '0';
 
 begin
 
@@ -110,10 +112,28 @@ loader_mem_rd <= '0';
 loader_mem_rfsh <= '0';
 
 -- boot flags
---loader_act <= not loader_bootdone;
-loader_act <= '0';
-host_reset <= loader_act;
+loader_act <= not loader_bootdone;
+--loader_act <= '0';
+host_reset <= host_reset_out;
 
+-- One tick to reset host on boot done
+process (reset, clk_low)
+variable reset_sent : boolean := false;
+begin
+	if reset = '1' then
+		
+		host_reset_out <= '0';
+		reset_sent := false;
+
+	elsif rising_edge(clk_low) then
+		if loader_bootdone = '1' and not reset_sent then
+			reset_sent := true;
+			host_reset_out <= '1';
+		else 
+			host_reset_out <= '0';
+		end if;
+	end if;
+end process;
 
 -- SD
 sd_clk <= host_sd_clk when loader_act='0' else loader_sd_clk;
@@ -144,8 +164,8 @@ vga_b <= host_vga_b when loader_act='0' or not use_osd else loader_vga_b;
 UL00: entity work.loader_vga_master
 	port map (
 		clk => clk,
-		--clkDiv => X"2", -- 84 Mhz / (3) = ~28 Mhz
-		clkDiv => X"0", -- 28 Mhz 
+		clkDiv => X"2", -- 84 Mhz / (3) = ~28 Mhz
+		--clkDiv => X"0", -- 28 Mhz 
 
 		hSync => loader_vga_hs,
 		vSync => loader_vga_vs,
@@ -181,7 +201,8 @@ port map
 -- Loader ctl 
 UL02: entity work.loader_ctrl
 	generic map (
-		sysclk_frequency => 280 -- Sysclk frequency * 10 mhz
+		--sysclk_frequency => 280 -- Sysclk frequency * 10 mhz
+		sysclk_frequency => 840
 	)
 	port map(
 		clk => clk,
@@ -214,7 +235,7 @@ UL02: entity work.loader_ctrl
 		
 		-- loader signals to host
 		host_reset_n => loader_host_reset_n,
-		host_bootdone => loader_bootdone,
+		host_bootdone => loader_bootdone_resp,
 		host_divert_sdcard => loader_host_divert_sdcard,
 		host_divert_keyboard => loader_host_divert_keyboard,
 		dipswitches => loader_dipswitches,
@@ -224,41 +245,45 @@ UL02: entity work.loader_ctrl
 
 
 -- mem write
---process (reset, clk_low, loader_boot_ack)
---begin
---	if reset = '1' then		
+process (reset, clk_low)
+begin
+	if reset = '1' then		
 
---		loader_mem_wr <= '0';
---		loader_boot_req <= '1';
---		loader_bootdone <= '0';
---		loader_address <= 0;
+		loader_mem_wr <= '0';
+		loader_boot_req <= '1';
+		loader_bootdone <= '0';
+		loader_address <= 0;
 
---	elsif clk_low'event and clk_low = '1' then
+	elsif clk_low'event and clk_low = '1' then
 
---		if loader_address >= loader_filesize then 
+		if loader_address >= loader_filesize then 
 
---			loader_mem_wr <= '0';
---			loader_boot_req <= '0';
---			loader_bootdone <= '1';
+			loader_mem_wr <= '0';
+			loader_boot_req <= '0';
+			loader_bootdone <= '1';
 
---		elsif loader_boot_ack = '1' then
-			
---			loader_mem_di_bus <= loader_boot_data;
---			loader_mem_a_bus <= std_logic_vector( to_unsigned(mem_a_offset+loader_address, 25) );
---			loader_address <= loader_address + 1;
+		else 
 
---			loader_mem_wr <= '1';
---			loader_boot_req <= '0';	
---			loader_bootdone <= '0';
---		else
+			loader_bootdone <= '0';
 
---			loader_mem_wr <= '0';
---			loader_boot_req <= '1';	
---			loader_bootdone <= '0';
+			if loader_boot_ack = '1' then
+				
+				loader_mem_di_bus <= loader_boot_data;
+				loader_mem_a_bus <= conv_std_logic_vector(mem_a_offset+loader_address, 25);
+				loader_address <= loader_address + 1;
 
---		end if;
+				loader_mem_wr <= '1';
+				loader_boot_req <= '0';	
+				
+			else
 
---	end if;
---end process;
+				loader_mem_wr <= '0';
+				loader_boot_req <= '1';	
+
+			end if;
+
+		end if;
+	end if;
+end process;
 		
 end architecture;

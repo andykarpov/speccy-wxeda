@@ -247,6 +247,7 @@ signal ena_cnt		: std_logic_vector(5 downto 0);
 -- System
 signal reset		: std_logic;
 signal areset		: std_logic;
+signal boot_reset 	: std_logic;
 signal key_reset	: std_logic;
 signal locked		: std_logic;
 signal dos_act		: std_logic := '1';
@@ -513,15 +514,14 @@ port map (
 -- Loader
 U21: entity work.loader 
 	generic map (
-		mem_a_offset => 17317888, -- TR-DOS started from 0x1084000
-		--loader_filesize => 81920,  -- SPECCY.ROM filesize
-		loader_filesize => 16384,
+		mem_a_offset => 17301504, --GLUK ROM start point (0x1080000) 
+		loader_filesize => 81920,  -- SPECCY.ROM filesize (bytes)
 		use_osd => true
 	)
 	port map (
-		clk => clk_bus,
-		clk_low => clk_bus,
-		reset => (areset or locked),
+		clk => clk_sdr,
+		clk_low => ena_3_5mhz,
+		reset => areset or not locked,
 
 		-- physical connections
 		sd_clk => SD_CLK,
@@ -570,12 +570,22 @@ U21: entity work.loader
 		host_reset => loader_host_reset
 	);
 
-UTESTROM: entity work.testrom
+-- Test ROM 2k
+U22: entity work.testrom
 	port map (
 		address => cpu0_a_bus(10 downto 0),
 		clock => clk_bus,
 		q => rom_do_bus
 	);
+
+-- Boot Reset Sync
+--U23: entity work.oneshot
+--	port map (
+--		CLK => clk_bus,
+--		RESET => locked,
+--		ONESHOT_IN => '1',
+--		ONESHOT_OUT => boot_reset
+--	);
 
 -------------------------------------------------------------------------------
 -- Формирование глобальных сигналов
@@ -599,10 +609,10 @@ ena_0_4375mhz <= ena_cnt(5) and ena_cnt(4) and ena_cnt(3) and ena_cnt(2) and ena
 
 areset <= not KEYS(3);												-- глобальный сброс (S4 button)
 reset <= areset 
-	--or not KEYS(2) 
 	or not KEYS(2)
 	or loader_host_reset
-	or key_reset 
+	or key_reset
+	-- or boot_reset
 	or not locked;      	-- горячий сброс (S3 button or reset by keyboard "Scroll Lock" button)
 
 cpu0_reset_n <= not(reset) and not(kb_f_bus(4));					-- CPU сброс 
@@ -763,8 +773,8 @@ process (selector, sdr_do_bus, spi_do_bus, spi_busy, kb_do_bus, zc_do_bus,
 begin
         case selector is
         	-- todo
-		        --when "00000" => cpu0_di_bus <= sdr_do_bus;
-		        when "00000" => cpu0_di_bus <= rom_do_bus;
+		        when "00000" => cpu0_di_bus <= sdr_do_bus;
+		        --when "00000" => cpu0_di_bus <= rom_do_bus;
                 when "00010" => cpu0_di_bus <= sdr_do_bus;
                 when "00111" => cpu0_di_bus <= "111" & kb_do_bus;
                 when "01000" => cpu0_di_bus <= zc_do_bus;
