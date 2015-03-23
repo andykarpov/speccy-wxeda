@@ -154,7 +154,6 @@ set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to PS2_CLK
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to PS2_DAT
 set_global_assignment -name VHDL_FILE ../rtl/loader/loader.vhd
 set_global_assignment -name VHDL_FILE ../rtl/loader/loader_vga_master.vhd
-set_global_assignment -name VHDL_FILE ../rtl/oneshot/oneshot.vhd
 set_global_assignment -name VHDL_FILE ../rtl/loader/zpuflex/rtl/zpu_core_flex.vhd
 set_global_assignment -name VHDL_FILE ../rtl/loader/zpuflex/rtl/zpupkg.vhd
 set_global_assignment -name VHDL_FILE ../rtl/loader/loader_uart.vhd
@@ -170,7 +169,6 @@ set_global_assignment -name VHDL_FILE ../rtl/loader/loader_ctrl.vhd
 set_global_assignment -name VHDL_FILE ../rtl/loader/loader_charrom_rom.vhd
 set_global_assignment -name VHDL_FILE ../rtl/sound/turbosound.vhd
 set_global_assignment -name VHDL_FILE ../rtl/sound/soundrive.vhd
-set_global_assignment -name VHDL_FILE ../rtl/sound/SoundMixer.vhd
 set_global_assignment -name VHDL_FILE ../rtl/sound/dac.vhd
 set_global_assignment -name VHDL_FILE ../rtl/sound/ay8910.vhd
 set_global_assignment -name VHDL_FILE ../rtl/speccy.vhd
