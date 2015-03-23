@@ -5,9 +5,10 @@ USE ieee.std_logic_arith.all;
 
 entity loader is
 	generic(
-		mem_a_offset : integer := 0;
-		loader_filesize : integer := 81920;
-		use_osd : boolean := true
+		mem_a_offset : integer := 0; -- physical mem write address offset
+		loader_filesize : integer := 81920; -- loader rom filesize
+		use_osd : boolean := true; -- show osd
+		clk_frequency : integer := 840 -- loader clk frequency * 10
 	);
 	port
 	(
@@ -20,8 +21,8 @@ entity loader is
 		sd_mosi : out std_logic;
 		sd_miso : in std_logic;
 
-		uart_rxd : in std_logic;
-		uart_txd : out std_logic;
+--		uart_rxd : in std_logic;
+--		uart_txd : out std_logic;
 
 --		ps2_clk : inout std_logic;
 --		ps2_dat : inout std_logic;
@@ -113,7 +114,6 @@ loader_mem_rfsh <= '0';
 
 -- boot flags
 loader_act <= not loader_bootdone;
---loader_act <= '0';
 host_reset <= host_reset_out;
 
 -- One tick to reset host on boot done
@@ -149,9 +149,13 @@ mem_rd <= host_mem_rd when loader_act='0' else loader_mem_rd;
 mem_wr <= host_mem_wr when loader_act='0' else loader_mem_wr;
 mem_rfsh <= host_mem_rfsh when loader_act='0' else '0';
 
+-- PS/2 kbd
+--loader_ps2_dat_in <= ps2_dat;
+--loader_ps2_clk_in <= ps2_clk;
+
 -- UART
-uart_txd <= loader_uart_txd;
-loader_uart_rxd <= uart_rxd;
+--uart_txd <= loader_uart_txd;
+--loader_uart_rxd <= uart_rxd;
 
 -- VGA
 vga_hs <= host_vga_hs when loader_act='0' or not use_osd else loader_vga_hs;
@@ -164,8 +168,7 @@ vga_b <= host_vga_b when loader_act='0' or not use_osd else loader_vga_b;
 UL00: entity work.loader_vga_master
 	port map (
 		clk => clk,
-		clkDiv => X"2", -- 84 Mhz / (3) = ~28 Mhz
-		--clkDiv => X"0", -- 28 Mhz 
+		clkDiv =>TO_UNSIGNED((clk_frequency/280)-1, 4),
 
 		hSync => loader_vga_hs,
 		vSync => loader_vga_vs,
@@ -201,8 +204,7 @@ port map
 -- Loader ctl 
 UL02: entity work.loader_ctrl
 	generic map (
-		--sysclk_frequency => 280 -- Sysclk frequency * 10 mhz
-		sysclk_frequency => 840
+		sysclk_frequency => clk_frequency
 	)
 	port map(
 		clk => clk,
