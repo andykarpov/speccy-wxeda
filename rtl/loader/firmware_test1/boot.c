@@ -294,8 +294,12 @@ int main(int argc,char **argv)
 	OSD_Show(1);	// Figure out sync polarity
 	PS2Wait();
 	PS2Wait();
-	OSD_Show(1);	// OSD should now show correctly.
-
+	for(i=0;i<128;++i) {
+		PS2Wait();
+		OSD_Show(1);	// OSD should now show correctly.
+	}
+	PS2Wait();
+	PS2Wait();
 
 	while (1) {
 		if(Boot(BOOT_LOADSETTINGS))
