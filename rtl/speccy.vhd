@@ -88,6 +88,11 @@ port (
 	VGA_HS			: out std_logic;
 	VGA_VS			: out std_logic;
 
+	-- ADC
+	ADC_CS_N		: out std_logic;
+	ADC_CLK			: out std_logic;
+	ADC_DAT			: in std_logic;
+
 	-- External I/O
 	DAC_OUT_L		: out std_logic; -- Audio out L
 	DAC_OUT_R		: out std_logic; -- Audio out R
@@ -205,6 +210,8 @@ signal audio_r		: std_logic_vector(11 downto 0);
 signal dac_s_l		: std_logic_vector(11 downto 0);
 signal dac_s_r		: std_logic_vector(11 downto 0);
 signal sound		: std_logic_vector(7 downto 0);
+signal linein 		: std_logic_vector(7 downto 0);
+signal tapein		: std_logic;
 -- Soundrive
 signal covox_a		: std_logic_vector(7 downto 0);
 signal covox_b		: std_logic_vector(7 downto 0);
@@ -491,6 +498,21 @@ port map (
     DAC_DATA	=> dac_s_r,
     DAC_OUT   	=> DAC_OUT_R);
 
+-- ADC
+ADC : entity work.tlc549 
+generic map (
+	frequency => 28
+)
+port map (
+	clk => clk_bus,
+    reset => reset,
+	adc_data => ADC_DAT,
+	adc_clk => ADC_CLK,
+	adc_cs_n => ADC_CS_N,
+	data_out => linein,
+    clk_out => open
+);
+
 -- Loader
 U21: entity work.loader 
 generic map (
@@ -695,6 +717,7 @@ beeper <= port_xxfe_reg(4);
 
 -- 12bit Delta-Sigma DAC
 audio_l <= 	  ("0000" & beeper & "0000000") + 
+			  ("000000" & tapein & "00000") + 
 			  ("0000" & ssg_cn0_a) + 
 			  ("0000" & ssg_cn0_b) + 
 			  ("0000" & ssg_cn1_a) + 
@@ -703,6 +726,7 @@ audio_l <= 	  ("0000" & beeper & "0000000") +
 			  ("0000" & covox_b);
 			  
 audio_r <=    ("0000" & beeper & "0000000") + 
+			  ("000000" & tapein & "00000") + 
 			  ("0000" & ssg_cn0_c) + 
 			  ("0000" & ssg_cn0_b) + 
 			  ("0000" & ssg_cn1_c) + 
@@ -775,7 +799,7 @@ begin
 		when "00100" => cpu0_di_bus <= spi_busy & "1111111";
 		--when "00101" => cpu0_di_bus <= rtc_do_bus;
 		--when "00110" => cpu0_di_bus <= mc146818_do_bus;
-		when "00111" => cpu0_di_bus <= "111" & kb_do_bus;
+		when "00111" => cpu0_di_bus <= '1' & tapein & '1' & kb_do_bus;
 		when "01000" => cpu0_di_bus <= zc_do_bus;
 		when "01101" => cpu0_di_bus <= "000" & kb_joy_bus;
 		when "01110" => cpu0_di_bus <= ssg_cn0_bus;
@@ -803,6 +827,22 @@ selector <=
     "10100" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus(15 downto 0) = X"7FFD") else						-- read port 7FFD
     "10101" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus(15 downto 0) = X"DFFD") else						-- read port DFFD
 	(others => '1');
+
+
+-------------------------------------------------------------------------------
+-- ADC to tapein conversion
+process (clk_bus, tapein, linein)
+variable HYST: integer := 4;
+variable LEVEL: integer := 128;
+begin
+	if rising_edge(clk_bus) then 
+        if (tapein = '1' and linein < LEVEL - HYST) then 
+            tapein <= '0';
+        elsif (tapein = '0' and linein > LEVEL + HYST) then 
+            tapein <= '1';
+        end if;
+	end if;    
+end process;
 
 -------------------------------------------------------------------------------
 -- Video

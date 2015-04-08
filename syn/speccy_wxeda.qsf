@@ -141,8 +141,9 @@ set_location_assignment PIN_110 -to VGA_B[4]
 set_location_assignment PIN_119 -to VGA_G[5]
 set_location_assignment PIN_85 -to BUZZER
 set_location_assignment PIN_24 -to CLK_48MHZ
-
-
+set_location_assignment PIN_127 -to ADC_CLK
+set_location_assignment PIN_128 -to ADC_DAT
+set_location_assignment PIN_129 -to ADC_CS_N
 set_location_assignment PIN_133 -to DAC_OUT_L -comment "Speaker out L"
 set_location_assignment PIN_144 -to DAC_OUT_R -comment "Speaker out R"
 set_location_assignment PIN_23 -to DATA0 -comment "Flash 23 / EPCS 13"
@@ -152,6 +153,8 @@ set_location_assignment PIN_7 -to ASDO -comment "Flash 7 / EPCS 6"
 set_location_assignment PIN_65 -to SDRAM_A[12]
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to PS2_CLK
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to PS2_DAT
+set_global_assignment -name EDA_SIMULATION_TOOL "<None>"
+set_global_assignment -name VHDL_FILE ../rtl/sound/tlc549.vhd
 set_global_assignment -name VHDL_FILE ../rtl/loader/loader.vhd
 set_global_assignment -name VHDL_FILE ../rtl/loader/loader_vga_master.vhd
 set_global_assignment -name VHDL_FILE ../rtl/loader/zpuflex/rtl/zpu_core_flex.vhd
@@ -192,6 +195,5 @@ set_global_assignment -name VHDL_FILE ../rtl/sd/zcontroller.vhd
 set_global_assignment -name VHDL_FILE ../rtl/divmmc/divmmc.vhd
 set_global_assignment -name VHDL_FILE ../rtl/ram/altram1.vhd
 set_global_assignment -name QIP_FILE ../rtl/pll/altpll1.qip
-set_global_assignment -name EDA_SIMULATION_TOOL "<None>"
 set_global_assignment -name QIP_FILE ../rtl/rom/testrom.qip
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
