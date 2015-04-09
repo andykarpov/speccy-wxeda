@@ -286,7 +286,6 @@ begin
 -- PLL
 U0: entity work.altpll1
 port map (
-	areset		=> areset,
 	inclk0		=> CLK_48MHZ,	--  48.0 MHz
 	locked		=> locked,
 	c0			=> clk_sdr, 	-- 84 MHz
@@ -501,7 +500,8 @@ port map (
 -- ADC
 ADC : entity work.tlc549 
 generic map (
-	frequency => 28
+	frequency => 28, -- 28 MHz
+	samplerate => 40000 -- 40 kHz
 )
 port map (
 	clk => clk_bus,
@@ -788,7 +788,7 @@ end process;
 -------------------------------------------------------------------------------
 -- CPU0 data bus
 process (selector, rom_do_bus, sdr_do_bus, spi_do_bus, spi_busy, rtc_do_bus, mc146818_do_bus, kb_do_bus, zc_do_bus, 
-		kb_joy_bus, ssg_cn0_bus, ssg_cn1_bus, divmmc_do, port_7ffd_reg, port_dffd_reg)
+		kb_joy_bus, ssg_cn0_bus, ssg_cn1_bus, divmmc_do, port_7ffd_reg, port_dffd_reg, tapein)
 
 begin
 	case selector is
@@ -818,7 +818,7 @@ selector <=
 	"00100" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus( 7 downto 0) = X"03") else -- W25P32
 	"00101" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus( 7 downto 5) = "100" and cpu0_a_bus(3 downto 0) = "1100") else 	-- RTC
 	"00110" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and port_bff7 = '1' and port_eff7_reg(7) = '1') else -- MC146818A
-	"00111" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus( 7 downto 0) = X"FE") else 			 -- Keyboard, port xxFE
+	"00111" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus( 7 downto 0) = X"FE") else 			 -- Keyboard, tapein, port xxFE
 	"01000" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus( 7 downto 6) = "01" and cpu0_a_bus(4 downto 0) = "10111") else -- ZC
 	"01101" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus( 7 downto 0) = X"1F" and dos_act = '0') else 	-- Joystick, port xx1F
 	"01110" when (cpu0_iorq_n = '0' and cpu0_rd_n = '0' and cpu0_a_bus(15 downto 0) = X"FFFD" and ssg_sel = '0') else 	-- TurboSound

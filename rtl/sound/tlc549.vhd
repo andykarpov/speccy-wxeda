@@ -16,8 +16,8 @@ USE ieee.numeric_std.ALL;
 
 entity tlc549 is 
 generic (
-	frequency : integer := 24; -- input freq (in MHz)
-	sample_cycles : integer := 28 -- total count of 1mhz cycles to sample data
+	frequency : integer := 28; -- input freq (in MHz)
+	samplerate : integer := 40000 -- desired samplerate
 );
 port (
 		clk 		: in std_logic;
@@ -25,7 +25,7 @@ port (
 
 		adc_data 	: in std_logic;
 		adc_cs_n 	: out std_logic := '1';
-		adc_clk  	: out std_logic := '0';
+		adc_clk  	: out std_logic := '0'; 
 
 		clk_out		: out std_logic;
 		data_out 	: out std_logic_vector(7 downto 0) := "00000000"
@@ -34,23 +34,23 @@ end tlc549;
 
 architecture rtl of tlc549 is 
 
-signal clk_1m : std_logic := '0';
+signal clk_2m : std_logic := '0';
 signal ad_data_shift : std_logic_vector(7 downto 0) := "00000000"; 
 signal adc_clk_out : std_logic := '0';
 signal adc_cs_n_out : std_logic := '1';
 
 begin 
 
--- 2 mhz clock from input clock (default to 24 mhz)
+-- 2 mhz clock from input clock
 process (clk, reset)
 variable cnt : integer range 0 to frequency := 0;
-variable half : integer := frequency/2;
-variable full : integer := frequency;
+variable half : integer := frequency/4;
+variable full : integer := frequency/2;
 begin
 	
 	if (reset = '1') then 
 
-		clk_1m <= '0';
+		clk_2m <= '0';
 		cnt := 0;
 
 	elsif rising_edge(clk) then 
@@ -58,9 +58,9 @@ begin
 		cnt := cnt + 1;
 
 		if (cnt <= half) then
-			clk_1m <= '1';
+			clk_2m <= '1';
 		else 
-			clk_1m <= '0';
+			clk_2m <= '0';
 		end if;
 
 		-- reset counter on frequency cycles
@@ -72,12 +72,13 @@ begin
 
 end process;
 
-clk_out <= clk_1m;
+clk_out <= clk_2m;
 adc_clk <= adc_clk_out;
 adc_cs_n <= adc_cs_n_out;
 
 -- AD signal generation for sampling / reading
-process (clk_1m, reset)
+process (clk_2m, reset)
+variable sample_cycles : integer := 2000000 / samplerate; -- total count of 2mhz ticks to sample data to get ~40kHz samplerate
 variable cnt : integer range 0 to sample_cycles := 0;
 begin
 	if (reset = '1') then
@@ -86,7 +87,7 @@ begin
 		adc_clk_out <= '0';
 		adc_cs_n_out <= '1';
 
-	elsif rising_edge(clk_1m) then
+	elsif rising_edge(clk_2m) then
 		
 		cnt := cnt + 1;
         adc_cs_n_out <= '1';
