@@ -408,7 +408,7 @@ begin
   end process;
 
 
-  opcodeControl: process(clk, reset)
+  opcodeControl: process(clk, reset, comparison_sub_result, shift_count, memBRead)
     variable spOffset : unsigned(4 downto 0);
     variable tMultResult    : unsigned(wordSize*2-1 downto 0);
   begin
